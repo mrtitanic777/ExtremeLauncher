@@ -10,10 +10,10 @@
   <DockPanel Margin="16">
 
     <StackPanel DockPanel.Dock="Top" Spacing="8">
-      <TextBlock Text="Name" FontSize="11" />
+      <TextBlock Classes="field-label" Text="Name" />
       <TextBox Text="{Binding Name, Mode=TwoWay}" Watermark="What to call this instance" />
 
-      <TextBlock Text="Group (optional)" FontSize="11" Margin="0,6,0,0" />
+      <TextBlock Classes="field-label" Text="Group (optional)" />
       <TextBox Text="{Binding Group, Mode=TwoWay}" Watermark="Leave empty for none" />
 
       <!-- Hidden by default, as upstream hides them: the real list is well over a thousand entries,
@@ -45,7 +45,7 @@
          version and are filtered by it; Fabric and Quilt declare nothing, so every version is offered
          from 1.14 onwards and none before. See NewInstanceViewModel. -->
     <StackPanel DockPanel.Dock="Bottom" Spacing="6" Margin="0,12,0,0">
-      <TextBlock Text="Mod loader" FontSize="11" />
+      <TextBlock Classes="field-label" Text="Mod loader" />
 
       <StackPanel Orientation="Horizontal" Spacing="8">
         <ComboBox Width="140"
@@ -71,24 +71,22 @@
       </StackPanel>
     </StackPanel>
 
-    <Border Margin="0,12,0,0" BorderThickness="1"
+    <Border Margin="0,12,0,0" BorderThickness="1" CornerRadius="6"
             BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
-      <ListBox ItemsSource="{Binding Versions}" SelectedItem="{Binding Selected}">
+      <ListBox ItemsSource="{Binding Versions}" SelectedItem="{Binding Selected}" Classes="compact">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:VersionViewModel">
-            <StackPanel Orientation="Horizontal" Spacing="8" Margin="2">
-              <TextBlock Text="{Binding Version}" FontWeight="SemiBold" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="{Binding Version}" FontWeight="SemiBold" VerticalAlignment="Center" />
               <TextBlock Text="{Binding ReleasedString}"
                          FontSize="11" VerticalAlignment="Center"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-              <TextBlock Text="{Binding Type}"
-                         IsVisible="{Binding !IsRelease}"
-                         FontSize="11" VerticalAlignment="Center"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-              <TextBlock Text="latest"
-                         IsVisible="{Binding IsRecommended}"
-                         FontSize="11" VerticalAlignment="Center"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+              <Border Classes="badge" IsVisible="{Binding !IsRelease}">
+                <TextBlock Text="{Binding Type}" />
+              </Border>
+              <Border Classes="badge" IsVisible="{Binding IsRecommended}">
+                <TextBlock Text="latest" />
+              </Border>
             </StackPanel>
           </DataTemplate>
         </ListBox.ItemTemplate>

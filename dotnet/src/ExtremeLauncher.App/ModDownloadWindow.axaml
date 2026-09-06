@@ -71,15 +71,17 @@
 
       <ListBox Grid.Column="0"
                ItemsSource="{Binding Results}"
-               SelectedItem="{Binding Highlighted, Mode=TwoWay}">
+               SelectedItem="{Binding Highlighted, Mode=TwoWay}" Classes="compact">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:ResourceResultViewModel">
-            <Grid ColumnDefinitions="Auto,*" Margin="2">
+            <Grid ColumnDefinitions="Auto,*">
               <!-- A tick rather than a highlight, because being IN the basket and being the row you
-                   are READING are different things, and both need to be visible at once. -->
+                   are READING are different things, and both need to be visible at once. In the
+                   accent, so "in the basket" reads at a glance. -->
               <TextBlock Grid.Column="0" Text="✓"
                          Margin="0,0,8,0" VerticalAlignment="Center"
                          FontWeight="Bold"
+                         Foreground="{DynamicResource SystemAccentColor}"
                          IsVisible="{Binding IsSelected}" />
 
               <StackPanel Grid.Column="1">
@@ -94,7 +96,7 @@
         </ListBox.ItemTemplate>
       </ListBox>
 
-      <Border Grid.Column="2" Padding="10"
+      <Border Grid.Column="2" Padding="12" CornerRadius="6"
               BorderThickness="1"
               BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
         <DockPanel>
@@ -106,7 +108,7 @@
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             <TextBlock Text="{Binding Highlighted.Description}" TextWrapping="Wrap" />
 
-            <TextBlock Text="Version" FontSize="11" Margin="0,8,0,0" />
+            <TextBlock Classes="field-label" Text="Version" Margin="0,8,0,3" />
             <ComboBox HorizontalAlignment="Stretch"
                       ItemsSource="{Binding Highlighted.Versions}"
                       SelectedItem="{Binding Highlighted.SelectedVersion, Mode=TwoWay}">

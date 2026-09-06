@@ -44,16 +44,16 @@
     </StackPanel>
 
     <ListBox ItemsSource="{Binding Versions}"
-             SelectedItem="{Binding Selected, Mode=TwoWay}">
+             SelectedItem="{Binding Selected, Mode=TwoWay}" Classes="compact">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="vm:VersionViewModel">
-          <Grid ColumnDefinitions="*,Auto,Auto" Margin="2">
+          <Grid ColumnDefinitions="*,Auto,Auto">
             <TextBlock Grid.Column="0" Text="{Binding Version}" VerticalAlignment="Center" />
 
-            <TextBlock Grid.Column="1" Text="recommended"
-                       Margin="8,0" VerticalAlignment="Center"
-                       FontStyle="Italic"
-                       IsVisible="{Binding IsRecommended}" />
+            <Border Grid.Column="1" Classes="badge" Margin="8,0"
+                    IsVisible="{Binding IsRecommended}">
+              <TextBlock Text="recommended" />
+            </Border>
 
             <TextBlock Grid.Column="2" Text="{Binding ReleasedString}"
                        VerticalAlignment="Center"

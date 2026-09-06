@@ -16,10 +16,10 @@
         WindowStartupLocation="CenterOwner">
 
   <StackPanel Margin="16" Spacing="10">
-    <TextBlock Text="Name" />
+    <TextBlock Classes="field-label" Text="Name" />
     <TextBox Text="{Binding Name}" Watermark="Name for the copy" />
 
-    <TextBlock Text="Copy" Margin="0,6,0,0" FontWeight="SemiBold" />
+    <TextBlock Classes="h2" Text="Copy" />
 
     <CheckBox Content="Saves" IsChecked="{Binding CopySaves}" />
     <CheckBox Content="Keep playtime" IsChecked="{Binding KeepPlaytime}" />
@@ -30,7 +30,7 @@
     <CheckBox Content="Mods" IsChecked="{Binding CopyMods}" />
     <CheckBox Content="Screenshots" IsChecked="{Binding CopyScreenshots}" />
 
-    <TextBlock Text="How" Margin="0,6,0,0" FontWeight="SemiBold" />
+    <TextBlock Classes="h2" Text="How" />
 
     <RadioButton GroupName="mode" Content="Full copy (independent)"
                  IsChecked="{Binding IsModeCopy}" />

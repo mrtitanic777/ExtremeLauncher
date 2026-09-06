@@ -35,23 +35,23 @@
       </Grid>
     </Border>
 
-    <ListBox ItemsSource="{Binding Updates}">
+    <ListBox ItemsSource="{Binding Updates}" Classes="compact">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="vm:ModUpdateRowViewModel">
-          <Grid ColumnDefinitions="Auto,*" Margin="2">
+          <Grid ColumnDefinitions="Auto,*">
             <CheckBox Grid.Column="0" VerticalAlignment="Center"
                       IsChecked="{Binding IsChosen, Mode=TwoWay}" />
 
             <StackPanel Grid.Column="1">
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="{Binding NewVersionName}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding NewVersionName}" FontWeight="SemiBold" VerticalAlignment="Center" />
 
                 <!-- Said outright: updating a disabled mod leaves it disabled, and somebody who does
                      not know that will wonder why the new version is not loading. -->
-                <TextBlock Text="(disabled — will stay disabled)"
-                           IsVisible="{Binding IsDisabledMod}"
-                           FontSize="11" VerticalAlignment="Center" FontStyle="Italic"
-                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                <Border Classes="badge warn" IsVisible="{Binding IsDisabledMod}"
+                        ToolTip.Tip="This mod is disabled; updating it leaves it disabled.">
+                  <TextBlock Text="stays disabled" />
+                </Border>
               </StackPanel>
 
               <TextBlock Text="{Binding Change}"
