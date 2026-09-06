@@ -535,11 +535,11 @@
                        IsVisible="{Binding IsEmpty}"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
 
-            <ListBox ItemsSource="{Binding Screenshots}" SelectedItem="{Binding Selected}">
+            <ListBox ItemsSource="{Binding Screenshots}" SelectedItem="{Binding Selected}" Classes="compact">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:ScreenshotViewModel">
-                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="2">
-                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" />
                     <TextBlock Text="{Binding TakenString}"
                                FontSize="11" VerticalAlignment="Center"
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
@@ -620,11 +620,11 @@
               </Grid>
             </Border>
 
-            <ListBox ItemsSource="{Binding Servers}" SelectedItem="{Binding Selected}">
+            <ListBox ItemsSource="{Binding Servers}" SelectedItem="{Binding Selected}" Classes="compact">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:ServerViewModel">
-                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="2">
-                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" />
                     <TextBlock Text="{Binding Address}"
                                VerticalAlignment="Center"
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
