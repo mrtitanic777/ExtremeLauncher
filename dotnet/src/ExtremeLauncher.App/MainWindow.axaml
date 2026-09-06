@@ -17,7 +17,7 @@
     <!-- The toolbar. Every button binds its enabled state to the view model rather than being
          switched on and off by hand, so it cannot disagree with the selection. -->
     <Border DockPanel.Dock="Top" Padding="8" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
-      <StackPanel Orientation="Horizontal" Spacing="6">
+      <WrapPanel Classes="toolbar" Orientation="Horizontal">
         <!-- IsEnabled bound like every other button here. It was missing, and a plain RelayCommand
              has a CanExecute that is always true, so Launch stayed live with nothing selected, live
              for an instance that cannot run, and live during a launch. The command guards itself, so
@@ -42,7 +42,9 @@
                 Command="{Binding ImportPackCommand}"
                 IsEnabled="{Binding CanImportPack}" />
 
+        <!-- The hero action, accent-filled: the one button people open the launcher to press. -->
         <Button Content="Launch"
+                Classes="hero"
                 Command="{Binding LaunchSelectedCommand}"
                 IsEnabled="{Binding CanLaunch}" />
 
@@ -54,21 +56,22 @@
         <Button Content="Edit"
                 Command="{Binding EditSelectedCommand}"
                 IsEnabled="{Binding CanOpenEditor}" />
-        <Button Content="Copy"
-                Command="{Binding CopySelectedCommand}"
-                IsEnabled="{Binding CanCopy}" />
 
-        <Button Content="Delete"
-                Command="{Binding DeleteSelectedCommand}"
-                IsEnabled="{Binding CanDelete}" />
-
-        <Button Content="Rename"
-                Command="{Binding RenameSelectedCommand}"
-                IsEnabled="{Binding CanRename}" />
-
-        <Button Content="Group"
-                Command="{Binding ChangeGroupCommand}"
-                IsEnabled="{Binding CanChangeGroup}" />
+        <!-- The secondary per-instance actions, folded into one menu so the toolbar is not a wall of
+             sixteen identical buttons. All still one click away, none of them shouting. -->
+        <Button Content="More ▾" IsEnabled="{Binding HasSelection}">
+          <Button.Flyout>
+            <MenuFlyout>
+              <MenuItem Header="Copy…" Command="{Binding CopySelectedCommand}" IsEnabled="{Binding CanCopy}" />
+              <MenuItem Header="Rename…" Command="{Binding RenameSelectedCommand}" IsEnabled="{Binding CanRename}" />
+              <MenuItem Header="Change group…" Command="{Binding ChangeGroupCommand}" IsEnabled="{Binding CanChangeGroup}" />
+              <MenuItem Header="Change icon…" Command="{Binding ChangeIconCommand}" IsEnabled="{Binding CanChangeIcon}" />
+              <MenuItem Header="Export…" Command="{Binding ExportSelectedCommand}" IsEnabled="{Binding CanExport}" />
+              <Separator />
+              <MenuItem Header="Delete…" Command="{Binding DeleteSelectedCommand}" IsEnabled="{Binding CanDelete}" />
+            </MenuFlyout>
+          </Button.Flyout>
+        </Button>
 
         <!-- The escape hatch every launcher needs. However complete the UI gets, somebody eventually
              has to look at a file, and a launcher that cannot show them where its files are makes
@@ -110,14 +113,6 @@
             </MenuFlyout>
           </Button.Flyout>
         </Button>
-
-        <Button Content="Export"
-                Command="{Binding ExportSelectedCommand}"
-                IsEnabled="{Binding CanExport}" />
-
-        <Button Content="Icon"
-                Command="{Binding ChangeIconCommand}"
-                IsEnabled="{Binding CanChangeIcon}" />
 
         <!-- Built from what this build actually has: most of these URLs are empty by default, and a
              menu entry that opens nothing looks like the launcher is broken rather than like the fork
@@ -185,7 +180,7 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
-      </StackPanel>
+      </WrapPanel>
     </Border>
 
     <!-- The launch status bar. Visible only while something is happening or has just failed, so the
@@ -283,7 +278,8 @@
                     <!-- A Button rather than a Border with a click handler: it is focusable, works
                          from the keyboard and is announced by a screen reader, none of which a bare
                          panel with a pointer event would be. -->
-                    <Button Width="112" Height="104" Margin="4" Padding="6"
+                    <Button Width="116" Height="108" Margin="5" Padding="6"
+                            Classes="instance-tile"
                             Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectCommand}"
                             CommandParameter="{Binding Id}"
                             Classes.selected="{Binding IsSelected}">

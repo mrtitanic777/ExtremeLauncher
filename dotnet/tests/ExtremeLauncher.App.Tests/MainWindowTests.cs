@@ -265,11 +265,11 @@ public sealed class MainWindowTests : IDisposable
      */
     [AvaloniaTheory]
     [InlineData("New")]
+    [InlineData("Modpacks")]
     [InlineData("Import")]
     [InlineData("Launch")]
+    [InlineData("Kill")]
     [InlineData("Edit")]
-    [InlineData("Copy")]
-    [InlineData("Delete")]
     public void EveryToolbarButtonHasACommandBehindIt(string label)
     {
         MakeInstance("Alpha");
@@ -293,13 +293,15 @@ public sealed class MainWindowTests : IDisposable
 
         var window = Show(viewModel);
 
-        Assert.False(Button(window, "Delete").IsEffectivelyEnabled);
-        Assert.False(Button(window, "Copy").IsEffectivelyEnabled);
+        // The per-instance actions live behind the "More" button, which is off until something is
+        // selected; Launch is the same. Before a selection, neither is actionable.
+        Assert.False(Button(window, "More ▾").IsEffectivelyEnabled);
+        Assert.False(Button(window, "Launch").IsEffectivelyEnabled);
 
         viewModel.Select("Alpha");
 
-        Assert.True(Button(window, "Delete").IsEffectivelyEnabled);
-        Assert.True(Button(window, "Copy").IsEffectivelyEnabled);
+        Assert.True(Button(window, "More ▾").IsEffectivelyEnabled);
+        Assert.True(Button(window, "Launch").IsEffectivelyEnabled);
     }
 
     /// <summary>An unsupported instance can be edited and deleted, but not launched.</summary>
@@ -315,7 +317,10 @@ public sealed class MainWindowTests : IDisposable
         viewModel.Select("Broken");
 
         Assert.False(Button(window, "Launch").IsEffectivelyEnabled);
-        Assert.True(Button(window, "Delete").IsEffectivelyEnabled);
+
+        // Delete and the rest are under "More", which is enabled for any selection -- an unsupported
+        // instance can still be tidied up.
+        Assert.True(Button(window, "More ▾").IsEffectivelyEnabled);
     }
 
     /*
@@ -490,7 +495,7 @@ public sealed class MainWindowTests : IDisposable
         Assert.True(Button(window, "New").IsEffectivelyEnabled);
 
         // ...while the ones that act on a selection are not.
-        Assert.False(Button(window, "Delete").IsEffectivelyEnabled);
+        Assert.False(Button(window, "More ▾").IsEffectivelyEnabled);
     }
 
     /// <summary>With no creator supplied, New is disabled rather than live-and-useless.</summary>

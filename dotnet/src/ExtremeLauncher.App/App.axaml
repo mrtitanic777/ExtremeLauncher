@@ -7,6 +7,86 @@
        application and what Qt gave them for free. -->
   <Application.Styles>
     <FluentTheme />
+
+    <!-- App-wide polish, so all twenty-odd windows share one look rather than each being raw Fluent. -->
+    <Style Selector="Window">
+      <Setter Property="FontFamily"
+              Value="Segoe UI, Inter, -apple-system, Ubuntu, Cantarell, sans-serif" />
+    </Style>
+
+    <!-- Toolbar and dialog buttons: a touch more room and a softer corner than the stock control. -->
+    <Style Selector="Button">
+      <Setter Property="Padding" Value="12,6" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
+    <!-- The hero action (Launch): filled with the accent so the one button people came to press reads
+         as the primary one instead of being lost in a row of identical grey buttons. -->
+    <Style Selector="Button.hero">
+      <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.hero:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SystemAccentColorDark1}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.hero:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+    </Style>
+
+    <!-- The main toolbar wraps instead of clipping off the window edge, with even gaps between items. -->
+    <Style Selector="WrapPanel.toolbar > Button, WrapPanel.toolbar > TextBox, WrapPanel.toolbar > ComboBox">
+      <Setter Property="Margin" Value="0,2,6,2" />
+    </Style>
+
+    <!-- Section headings used across the pages (group names, "How", "Copy", etc.). -->
+    <Style Selector="TextBlock.h2">
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Margin" Value="0,4,0,6" />
+    </Style>
+
+    <!-- The instance tiles on the main window: a real card, with a hover and a clear selected state.
+         The selected class was referenced by the tile but never defined, so selection was invisible. -->
+    <Style Selector="Button.instance-tile">
+      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.12" />
+          <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="Button.instance-tile:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}" />
+    </Style>
+
+    <!-- Selected: an accent border and a faint accent wash, so the current instance is unmistakable. -->
+    <Style Selector="Button.instance-tile.selected">
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight3}" />
+    </Style>
+    <Style Selector="Button.instance-tile.selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
   </Application.Styles>
+
+  <Application.Resources>
+    <!-- A grass-green accent, thematic for a Minecraft launcher and distinct from stock Fluent blue.
+         FluentTheme uses SystemAccentColor for controls; the light/dark shades are the hover/pressed
+         and tint steps, set explicitly because Fluent does not derive them on its own. -->
+    <Color x:Key="SystemAccentColor">#3FA34D</Color>
+    <Color x:Key="SystemAccentColorDark1">#379345</Color>
+    <Color x:Key="SystemAccentColorDark2">#2F803B</Color>
+    <Color x:Key="SystemAccentColorDark3">#276B31</Color>
+    <Color x:Key="SystemAccentColorLight1">#57B463</Color>
+    <Color x:Key="SystemAccentColorLight2">#7AC684</Color>
+    <Color x:Key="SystemAccentColorLight3">#A6DCAD</Color>
+  </Application.Resources>
 
 </Application>
