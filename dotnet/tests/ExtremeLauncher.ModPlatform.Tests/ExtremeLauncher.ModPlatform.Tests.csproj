@@ -16,16 +16,11 @@
     <ProjectReference Include="..\..\src\ExtremeLauncher.ModPlatform\ExtremeLauncher.ModPlatform.csproj" />
   </ItemGroup>
 
-  <!-- Vectors from a second, independent transcription of the C++; the generator sits beside them. -->
+  <!-- Vectors from a second, independent transcription of the C++, and the packwiz fixtures, both
+       kept in this project's own testdata so they are committed and copy on every platform. Forward
+       slashes: a backslash glob is a literal on non-Windows and copies nothing there. -->
   <ItemGroup>
-    <Content Include="testdata\**\*" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <!-- Reuse the Qt suite's fixtures rather than copying them. -->
-  <ItemGroup>
-    <Content Include="..\..\..\tests\testdata\packwiz\*.toml"
-             Link="testdata\packwiz\%(Filename)%(Extension)"
-             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="testdata/**/*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

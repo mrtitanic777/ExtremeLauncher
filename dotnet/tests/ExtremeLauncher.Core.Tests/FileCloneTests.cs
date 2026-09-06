@@ -75,7 +75,7 @@ public sealed class FileCloneTests : IDisposable
      * unsuitable pair is unsuitable for every file. Finding out on file one of three hundred is the
      * same answer sooner.
      */
-    [Fact]
+    [SkippableFact]
     public void AnUnsupportedFilesystemIsRefusedBeforeAnythingIsWritten()
     {
         Skip.If(FileSystem.CanClone(_temp, _temp), "This filesystem does support reflinks.");
@@ -92,7 +92,7 @@ public sealed class FileCloneTests : IDisposable
     }
 
     /// <summary>The message has to distinguish "wrong disk" from "wrong filesystem".</summary>
-    [Fact]
+    [SkippableFact]
     public void TheRefusalNamesBothFilesystems()
     {
         Skip.If(FileSystem.CanClone(_temp, _temp), "This filesystem does support reflinks.");
@@ -213,7 +213,7 @@ public sealed class FileCloneTests : IDisposable
     }
 
     /// <summary>Windows ReFS is not implemented; the refusal must say so rather than fail obscurely.</summary>
-    [Fact]
+    [SkippableFact]
     public void CloningOnAnUnimplementedPlatformSaysSo()
     {
         Skip.If(OperatingSystem.IsLinux() || OperatingSystem.IsMacOS(), "Implemented on this platform.");

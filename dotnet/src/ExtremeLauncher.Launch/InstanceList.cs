@@ -345,8 +345,14 @@ public sealed class InstanceList
             SaveGroupList();
         }
 
-        // Read back rather than reconstructed: whatever is in that directory is the truth about it.
-        LoadInstance(id);
+        // Read back rather than reconstructed: whatever is in that directory is the truth about it --
+        // and REGISTERED in the list, not just constructed. LoadInstance returns a record; LoadList
+        // assigns it into _instances and so must this, or the restored instance is on disk but absent
+        // from the list, and GetInstanceById cannot find what Undo just brought back.
+        if (LoadInstance(id) is { } restored)
+        {
+            _instances[id] = restored;
+        }
 
         return id;
     }

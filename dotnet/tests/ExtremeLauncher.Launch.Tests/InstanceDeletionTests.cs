@@ -149,9 +149,15 @@ public sealed class InstanceDeletionTests : IDisposable
      * listed. An earlier version of this test used an id that did not exist, which returns at the null
      * check and never reaches the ordering at issue -- it would have passed against the bug.
      */
-    [Fact]
+    [SkippableFact]
     public void AFailedRemovalDoesNotDisturbGrouping()
     {
+        // The way this test MAKES a removal fail -- holding a file open exclusively -- only blocks a
+        // move or delete on Windows. Unix lets you rename and unlink open files, so the removal would
+        // succeed there and the scenario cannot be reproduced; the property it checks (a failed removal
+        // leaves grouping untouched) is Windows-specific in how it arises.
+        Skip.IfNot(OperatingSystem.IsWindows(), "Open files only block removal on Windows.");
+
         var path = MakeInstance("Stuck", world: "My World");
 
         var list = NewList();

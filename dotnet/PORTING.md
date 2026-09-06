@@ -6152,6 +6152,44 @@ is bundled, because that distinction is invisible from the format's name and cha
   and have no export.
 - **The export window has never been seen by a human**, like every window in this port.
 
+## Wave 74 — cross-platform CI, and the three things it caught
+
+Taking the repo public added a GitHub Actions workflow that builds and tests the port on **Linux and
+Windows**. The port had only ever run on Windows, and Linux immediately failed six tests -- each a real
+"only-ever-run-on-Windows" defect, not a flake.
+
+### A genuine bug: undo-trash never re-listed the instance
+
+`UndoTrashInstance` moved the files back but called `LoadInstance(id)` and threw the result away --
+and `LoadInstance` only BUILDS a record, it does not register it (`LoadList` assigns it into the
+instance dictionary; undo did not). So a restored instance was on disk but absent from the list, and
+`GetInstanceById` returned null. Windows never caught it because its trash is the Recycle Bin, which
+reports no restore path, so the undo round-trip test SKIPS there and had never actually run. Linux's
+freedesktop trash does report the path, ran the test, and exposed it. Fixed to assign the restored
+record back into the list.
+
+### Test data that was never committed
+
+The packwiz `.pw.toml` fixtures lived only in an untracked folder at the Qt repo's root and were pulled
+in through a relative `Content Include`. They existed on the Windows working copy and nowhere in git, so
+a fresh Linux checkout had none and three PackwizTests failed. Moved into the port's own tracked
+`testdata/`, committed, and the cross-project link -- with its backslash glob that is a literal on Linux
+anyway -- removed.
+
+### Tests that only made sense on Windows
+
+`CloningOnAnUnimplementedPlatformSaysSo` and two reflink-guarded clone tests used `[Fact]` with
+`Skip.If`; `Skip.If` only skips under `[SkippableFact]`, so on Linux the skip threw and was reported as
+a failure. And `AFailedRemovalDoesNotDisturbGrouping` makes a removal fail by holding a file open --
+which only blocks a move on Windows, since Unix renames and unlinks open files freely. The first three
+became `[SkippableFact]`; the last is scoped to Windows, where its premise holds.
+
+### Now green on both
+
+Windows stays at 3,264 passing / 15 skipped; Linux now passes too, with a few more platform skips. CI
+runs on every push touching `dotnet/`, so the port cannot silently regress on either OS again -- which
+is the whole point of having taken it public with the workflow attached.
+
 ## Wave 73 — find in the launch log
 
 `LogPage` in upstream has a search box; the port's live log could only be copied whole. A modded
