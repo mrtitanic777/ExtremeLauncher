@@ -386,7 +386,10 @@ public sealed class LauncherService
         {
             foreach (var line in e.Lines)
             {
-                reporter.Line(line, e.Level == MessageLevel.Error);
+                // Fatal as well as Error: both are failures worth showing in red, and a crash line is
+                // usually the Fatal one. Now that levels are guessed from the game's own output, a
+                // crash on stdout reaches here as Error/Fatal rather than plain StdOut.
+                reporter.Line(line, e.Level is MessageLevel.Error or MessageLevel.Fatal);
             }
         };
 

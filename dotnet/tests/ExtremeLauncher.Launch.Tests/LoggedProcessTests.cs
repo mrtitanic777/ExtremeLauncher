@@ -203,6 +203,19 @@ public sealed class LoggedProcessTests
     }
 
     [SkippableFact]
+    public async Task AGameErrorOnStandardOutputIsGuessedAsAnError()
+    {
+        Skip.If(ShellCommand("echo") is null, "No host shell available.");
+
+        // The game prints crashes to stdout, not stderr, and without the launcher's level markers. The
+        // line is levelled by its content, so an exception on stdout still comes through as an Error.
+        var (_, log, _) = await Run("echo Exception in thread main");
+
+        Assert.Contains(log, entry => entry.Line.Contains("Exception in thread", StringComparison.Ordinal)
+                                      && entry.Level == MessageLevel.Error);
+    }
+
+    [SkippableFact]
     public async Task ANonZeroExitIsReportedAsACrash()
     {
         Skip.If(ShellCommand("exit") is null, "No host shell available.");

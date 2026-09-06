@@ -31,6 +31,7 @@
 
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ExtremeLauncher.Launch;
 
@@ -54,8 +55,104 @@ public enum MessageLevel
     Fatal,
 }
 
-public static class MessageLevels
+public static partial class MessageLevels
 {
+    /// <summary>
+    /// Works out a log line's severity from its own text -- upstream's MinecraftInstance::guessLevel.
+    /// </summary>
+    /// <remarks>
+    /// The game does not tag its output with the launcher's <c>!![Level]!</c> markers, so its plain
+    /// stdout/stderr is levelled by CONTENT: the log4j prefix "[HH:MM:SS] [thread/LEVEL]", the older
+    /// java.util.logging "[SEVERE]"/"[WARNING]" forms, and Java stack traces (which are Errors even
+    /// though each line looks ordinary).
+    ///
+    /// <paramref name="previous"/> is returned when nothing in the line names a level, so a stack trace
+    /// or a wrapped message keeps the level of the line that introduced it -- as far as the caller
+    /// carries it. Ported faithfully, including the "overwriting existing" special case upstream flags
+    /// as Fatal.
+    /// </remarks>
+    public static MessageLevel Guess(string line, MessageLevel previous)
+    {
+        ArgumentNullException.ThrowIfNull(line);
+
+        var level = previous;
+
+        if (Log4jLine().Match(line) is { Success: true } match)
+        {
+            level = match.Groups["level"].Value switch
+            {
+                "INFO" => MessageLevel.Message,
+                "WARN" => MessageLevel.Warning,
+                "ERROR" => MessageLevel.Error,
+                "FATAL" => MessageLevel.Fatal,
+                "TRACE" or "DEBUG" => MessageLevel.Debug,
+                _ => level,
+            };
+        }
+        else
+        {
+            // Old-style forge / java.util.logging levels.
+            if (line.Contains("[INFO]", StringComparison.Ordinal) || line.Contains("[CONFIG]", StringComparison.Ordinal)
+                || line.Contains("[FINE]", StringComparison.Ordinal) || line.Contains("[FINER]", StringComparison.Ordinal)
+                || line.Contains("[FINEST]", StringComparison.Ordinal))
+            {
+                level = MessageLevel.Message;
+            }
+
+            if (line.Contains("[SEVERE]", StringComparison.Ordinal) || line.Contains("[STDERR]", StringComparison.Ordinal))
+            {
+                level = MessageLevel.Error;
+            }
+
+            if (line.Contains("[WARNING]", StringComparison.Ordinal))
+            {
+                level = MessageLevel.Warning;
+            }
+
+            if (line.Contains("[DEBUG]", StringComparison.Ordinal))
+            {
+                level = MessageLevel.Debug;
+            }
+        }
+
+        if (line.Contains("overwriting existing", StringComparison.Ordinal))
+        {
+            return MessageLevel.Fatal;
+        }
+
+        // A Java stack trace is an error even though "\tat com.foo.Bar" looks like any other line.
+        if (line.Contains("Exception in thread", StringComparison.Ordinal)
+            || AtSymbol().IsMatch(line)
+            || CausedBy().IsMatch(line)
+            || Throwable().IsMatch(line)
+            || AndMore().IsMatch(line))
+        {
+            return MessageLevel.Error;
+        }
+
+        return level;
+    }
+
+    // "[12:34:56] [Render thread/WARN]" -- the level sits after the last slash of the second bracket.
+    [GeneratedRegex(@"\[(?<timestamp>[0-9:]+)\] \[[^/]+/(?<level>[^\]]+)\]")]
+    private static partial Regex Log4jLine();
+
+    // A fully-qualified Java symbol; the leading section is + rather than * as upstream notes.
+    private const string JavaSymbol = @"([a-zA-Z_$][a-zA-Z\d_$]*\.)+[a-zA-Z_$][a-zA-Z\d_$]*";
+
+    [GeneratedRegex(@"\s+at " + JavaSymbol)]
+    private static partial Regex AtSymbol();
+
+    [GeneratedRegex("Caused by: " + JavaSymbol)]
+    private static partial Regex CausedBy();
+
+    [GeneratedRegex(@"([a-zA-Z_$][a-zA-Z\d_$]*\.)+[a-zA-Z_$]?[a-zA-Z\d_$]*(Exception|Error|Throwable)")]
+    private static partial Regex Throwable();
+
+    [GeneratedRegex(@"\.\.\. \d+ more$")]
+    private static partial Regex AndMore();
+
+
     /// <remarks>
     /// StdOut, StdErr and Unknown are deliberately absent: they describe where a line came from, not
     /// something a process may claim about itself.
@@ -325,6 +422,11 @@ public sealed class LoggedProcess : IDisposable
         var batch = new List<string>();
         var batchLevel = defaultLevel;
 
+        // Carried across the lines of THIS chunk so a stack trace's continuation lines stay at the
+        // error level of the line that opened it. Not carried across chunks: stdout and stderr are
+        // pumped concurrently, and a field shared between them would interleave two unrelated streams.
+        var previous = defaultLevel;
+
         foreach (var raw in lines)
         {
             var line = raw;
@@ -332,8 +434,11 @@ public sealed class LoggedProcess : IDisposable
 
             if (level == MessageLevel.Unknown)
             {
-                level = defaultLevel;
+                // No launcher marker, so it is the game's own output: read the level from the line.
+                level = MessageLevels.Guess(line, previous);
             }
+
+            previous = level;
 
             if (level != batchLevel && batch.Count != 0)
             {

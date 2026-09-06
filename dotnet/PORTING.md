@@ -74,7 +74,7 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**368 of 758 files. 3,238 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**368 of 758 files. 3,258 passing, 15 skipped.** (12 source projects, 12 test projects.)
 
 > ⚠️ **Unverified: the INI writer's byte-compatibility.** `INIFile` is a wrapper over `QSettings` with
 > `IniFormat`, so the on-disk format is *QSettings' particular INI dialect* — and every existing
@@ -6151,6 +6151,45 @@ is bundled, because that distinction is invisible from the format's name and cha
 - **Only Modrinth and CurseForge export.** Technic, FTB and ATLauncher are parsed on the import side
   and have no export.
 - **The export window has never been seen by a human**, like every window in this port.
+
+## Wave 72 — the launcher reads the game's log levels
+
+The log page could only tell an error from an ordinary line when the launcher's own wrapper tagged it
+with a `!![Level]!` marker -- which the GAME never does. So a crash log4j-printed to stdout arrived as
+plain `StdOut` and was shown like any other line. `MinecraftInstance::guessLevel` is what upstream uses
+to colour the game's own output; it is ported now.
+
+### Levels from the line's own text
+
+`MessageLevels.Guess(line, previous)` reads the level from the content: the modern log4j prefix
+`[HH:MM:SS] [thread/LEVEL]`, the older java.util.logging `[SEVERE]`/`[WARNING]`/`[INFO]` forms, and --
+the part that matters most -- Java stack traces, which are errors even though `\tat com.foo.Bar` looks
+ordinary. The exception patterns are checked last and win over a line's own prefix, and the
+`overwriting existing` line upstream singles out stays Fatal. `previous` is returned when nothing names
+a level, so a multi-line message keeps one colour.
+
+### Wired where the game's output is levelled
+
+`EmitLines` now guesses the level of any line the wrapper did not mark, carrying the guessed level
+across the lines of one read so a stack trace stays Error to its end. It does NOT carry across reads:
+stdout and stderr are pumped concurrently, and a shared field would splice two unrelated streams -- a
+deliberate, documented divergence from upstream's single-stream parser. With levels now accurate,
+`LauncherService` flags a line as an error for `Error` OR `Fatal` (it only checked `Error` before, so a
+crash's Fatal line went unhighlighted).
+
+### Tested
+
+Nineteen parser tests -- every log4j level, the old forge forms, `overwriting existing`, five shapes of
+stack-trace line, the carry, and an exception outranking an INFO prefix -- plus a real-process test that
+echoes an exception to stdout and confirms it arrives as `Error`, proving the wiring. Both the
+exception-wins rule and the EmitLines wiring are mutation-verified.
+
+### Still not proved
+
+- **The level is classified, not yet coloured per level.** `LaunchLogLine` still carries error-or-not,
+  so the log page shows errors highlighted but does not tint WARN/DEBUG differently. Surfacing the full
+  level to the view is a follow-up; the parsing it needs is now here and tested.
+- **Cross-read stack-trace continuation** is not carried, per the concurrency note above.
 
 ## Wave 71 — Add Empty: a hand-made component
 
