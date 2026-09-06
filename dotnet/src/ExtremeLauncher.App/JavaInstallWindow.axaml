@@ -54,10 +54,10 @@
     </StackPanel>
 
     <ListBox ItemsSource="{Binding Runtimes}"
-             SelectedItem="{Binding Selected, Mode=TwoWay}">
+             SelectedItem="{Binding Selected, Mode=TwoWay}" Classes="compact">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="launch:InstallableJava">
-          <StackPanel Margin="2">
+          <StackPanel>
             <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
             <TextBlock FontSize="11"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"

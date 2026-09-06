@@ -53,10 +53,10 @@
 
       <ListBox Grid.Column="0"
                ItemsSource="{Binding Results}"
-               SelectedItem="{Binding SelectedPack, Mode=TwoWay}">
+               SelectedItem="{Binding SelectedPack, Mode=TwoWay}" Classes="compact">
         <ListBox.ItemTemplate>
           <DataTemplate DataType="vm:PackResultViewModel">
-            <StackPanel Margin="0,3">
+            <StackPanel>
               <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
               <TextBlock Text="{Binding Authors}" FontSize="11"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
@@ -78,7 +78,7 @@
                    Text="{Binding SelectedPack.Description}" />
 
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Spacing="4">
-          <TextBlock Text="Instance name" FontSize="11" />
+          <TextBlock Classes="field-label" Text="Instance name" />
           <TextBox Text="{Binding InstanceName, Mode=TwoWay}"
                    Watermark="{Binding SelectedPack.Name}" />
         </StackPanel>
@@ -96,7 +96,7 @@
         </StackPanel>
 
         <ListBox ItemsSource="{Binding Selection}"
-                 SelectedItem="{Binding SelectedVersion, Mode=TwoWay}">
+                 SelectedItem="{Binding SelectedVersion, Mode=TwoWay}" Classes="compact">
           <ListBox.ItemTemplate>
             <DataTemplate DataType="vm:PackVersionViewModel">
               <TextBlock Text="{Binding Label}" />

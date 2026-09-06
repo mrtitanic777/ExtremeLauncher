@@ -77,10 +77,10 @@
     <!-- A ListBox rather than a DataGrid: the app references no DataGrid package, and four fields
          per row do not need one. Matches how every other list in this launcher is built. -->
     <ListBox ItemsSource="{Binding Accounts}"
-             SelectedItem="{Binding Selected, Mode=TwoWay}">
+             SelectedItem="{Binding Selected, Mode=TwoWay}" Classes="compact">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="vm:AccountViewModel">
-          <Grid ColumnDefinitions="*,110,180,Auto" Margin="2">
+          <Grid ColumnDefinitions="*,110,180,Auto">
             <TextBlock Grid.Column="0" Text="{Binding ProfileName}"
                        VerticalAlignment="Center" FontWeight="SemiBold" />
             <TextBlock Grid.Column="1" Text="{Binding TypeLabel}" VerticalAlignment="Center" />
@@ -89,10 +89,10 @@
 
             <!-- The default is shown as a word, not a tick: a disabled checkbox in a row reads as
                  something you ought to be able to click, and this one is set by the button above. -->
-            <TextBlock Grid.Column="3" Text="default"
-                       VerticalAlignment="Center" Margin="8,0,0,0"
-                       FontStyle="Italic"
-                       IsVisible="{Binding IsDefault}" />
+            <Border Grid.Column="3" Classes="badge" Margin="8,0,0,0"
+                    IsVisible="{Binding IsDefault}">
+              <TextBlock Text="default" />
+            </Border>
           </Grid>
         </DataTemplate>
       </ListBox.ItemTemplate>

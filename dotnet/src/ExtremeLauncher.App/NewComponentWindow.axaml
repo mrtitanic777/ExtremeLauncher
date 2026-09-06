@@ -16,10 +16,10 @@
         WindowStartupLocation="CenterOwner">
 
   <StackPanel Margin="16" Spacing="8">
-    <TextBlock Text="Name" />
+    <TextBlock Classes="field-label" Text="Name" />
     <TextBox Text="{Binding Name}" Watermark="What the version page shows" />
 
-    <TextBlock Text="Identifier" Margin="0,6,0,0" />
+    <TextBlock Classes="field-label" Text="Identifier" />
     <TextBox Text="{Binding Uid}" Watermark="e.g. com.example.tweaks" />
 
     <TextBlock Text="An instance already has a component with that identifier."
