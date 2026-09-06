@@ -60,6 +60,12 @@
       <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
     </Style>
 
+    <!-- The warning variant, for a state the user needs to notice rather than merely read: a disabled
+         mod or an unreadable save. Same quiet pill, but in the error colour. -->
+    <Style Selector="Border.badge.warn > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+    </Style>
+
     <!-- Form field captions (settings, server editor): a consistent muted label with a little air
          under it, instead of an ad-hoc 11px TextBlock jammed against its input. -->
     <Style Selector="TextBlock.field-label">
