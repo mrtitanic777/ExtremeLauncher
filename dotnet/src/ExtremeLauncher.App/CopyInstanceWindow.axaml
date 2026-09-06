@@ -1,0 +1,51 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  Upstream's CopyInstanceDialog: a name and the checkboxes that decide what comes across.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.CopyInstanceWindow"
+        x:DataType="vm:CopyInstanceViewModel"
+        Title="Copy instance"
+        Width="420" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner">
+
+  <StackPanel Margin="16" Spacing="10">
+    <TextBlock Text="Name" />
+    <TextBox Text="{Binding Name}" Watermark="Name for the copy" />
+
+    <TextBlock Text="Copy" Margin="0,6,0,0" FontWeight="SemiBold" />
+
+    <CheckBox Content="Saves" IsChecked="{Binding CopySaves}" />
+    <CheckBox Content="Keep playtime" IsChecked="{Binding KeepPlaytime}" />
+    <CheckBox Content="Game options" IsChecked="{Binding CopyGameOptions}" />
+    <CheckBox Content="Resource packs" IsChecked="{Binding CopyResourcePacks}" />
+    <CheckBox Content="Shader packs" IsChecked="{Binding CopyShaderPacks}" />
+    <CheckBox Content="Servers" IsChecked="{Binding CopyServers}" />
+    <CheckBox Content="Mods" IsChecked="{Binding CopyMods}" />
+    <CheckBox Content="Screenshots" IsChecked="{Binding CopyScreenshots}" />
+
+    <TextBlock Text="How" Margin="0,6,0,0" FontWeight="SemiBold" />
+
+    <RadioButton GroupName="mode" Content="Full copy (independent)"
+                 IsChecked="{Binding IsModeCopy}" />
+    <RadioButton GroupName="mode" Content="Clone (copy-on-write)"
+                 IsChecked="{Binding IsModeClone}"
+                 IsVisible="{Binding CloneAvailable}" />
+    <RadioButton GroupName="mode" Content="Hard links (shared files)"
+                 IsChecked="{Binding IsModeHardLink}" />
+    <RadioButton GroupName="mode" Content="Symbolic links"
+                 IsChecked="{Binding IsModeSymLink}" />
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,10,0,0">
+      <Button Name="CancelButton" Content="Cancel" />
+      <Button Name="AcceptButton" Content="Copy"
+              IsEnabled="{Binding CanCopy}" IsDefault="True" />
+    </StackPanel>
+  </StackPanel>
+</Window>

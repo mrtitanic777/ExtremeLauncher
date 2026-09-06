@@ -1,0 +1,711 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        x:Class="ExtremeLauncher.App.InstanceWindow"
+        x:DataType="vm:InstanceWindowViewModel"
+        Title="{Binding Title}"
+        Width="880" Height="560"
+        MinWidth="600" MinHeight="380"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel>
+
+    <!-- The save failure, above everything. A page that could not write its file is the one thing here
+         a user must not miss: upstream's apply() returns void, so it cannot tell them at all. -->
+    <Border DockPanel.Dock="Top" Padding="10"
+            IsVisible="{Binding HasSaveFailure}"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+      <TextBlock Text="{Binding SaveFailure}"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+    </Border>
+
+    <!-- Launch, Kill and Close, as upstream's InstanceWindow carries them. This window IS the launch
+         window: pressing Launch here jumps to the log page the moment the game starts. -->
+    <Border DockPanel.Dock="Bottom" Padding="8"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+      <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+        <Button Content="Launch"
+                Command="{Binding LaunchCommand}"
+                IsEnabled="{Binding CanLaunch}" />
+        <Button Content="Kill"
+                Command="{Binding KillCommand}"
+                IsEnabled="{Binding CanKill}" />
+      </StackPanel>
+    </Border>
+
+    <!-- The page list. Bound to the collection rather than hardcoded, so a page that is not built for
+         this instance simply is not there. -->
+    <ListBox DockPanel.Dock="Left" Width="150" Margin="8"
+             ItemsSource="{Binding Pages}"
+             SelectedItem="{Binding SelectedPage, Mode=TwoWay}">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:IInstancePage">
+          <TextBlock Text="{Binding Title}" />
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <!-- The page itself. Which control appears is chosen by the view model's type, so adding a page
+         means adding a template rather than editing a switch. -->
+    <ContentControl Content="{Binding SelectedPage}" Margin="0,8,8,8">
+      <ContentControl.DataTemplates>
+
+        <!-- ============================================================ Version -->
+        <DataTemplate DataType="vm:VersionPageViewModel">
+          <DockPanel>
+
+            <!-- Where this instance came from. Absent entirely for one somebody built by hand,
+                 which is most of them; a permanent empty row would be worse than no row. -->
+            <Border DockPanel.Dock="Top" Margin="0,0,0,8" Padding="8,6"
+                    IsVisible="{Binding HasPackProvenance}"
+                    CornerRadius="4"
+                    Background="{DynamicResource SystemControlBackgroundListLowBrush}">
+              <StackPanel Spacing="4">
+                <TextBlock Text="{Binding PackProvenance}" TextWrapping="Wrap" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding PackUpdateNote}" TextWrapping="Wrap" FontSize="11"
+                           IsVisible="{Binding PackUpdateNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+                <!-- Only for a pack that recorded a project id, which means one installed through
+                     the browser rather than imported from a file. A button rather than something
+                     that runs on opening the page: this page is mostly read, and it should not cost
+                     a network request every time somebody looks at the component list. -->
+                <StackPanel Orientation="Horizontal" Spacing="8"
+                            IsVisible="{Binding CanCheckForPackUpdate}">
+                  <Button Content="Check for a newer version"
+                          Command="{Binding CheckForPackUpdateCommand}"
+                          IsEnabled="{Binding CanCheckForPackUpdate}" />
+
+                  <!-- Only after a check has found something, and it names the version rather than
+                       being a generic Update: pressing it deletes files, so it should be obvious
+                       what it is about to install. -->
+                  <Button Content="{Binding ApplyPackUpdateLabel}"
+                          Command="{Binding ApplyPackUpdateCommand}"
+                          IsVisible="{Binding CanApplyPackUpdate}"
+                          IsEnabled="{Binding CanApplyPackUpdate}" />
+
+                  <ProgressBar IsIndeterminate="True" Width="70" VerticalAlignment="Center"
+                               IsVisible="{Binding IsCheckingForPackUpdate}" />
+                  <ProgressBar IsIndeterminate="True" Width="70" VerticalAlignment="Center"
+                               IsVisible="{Binding IsApplyingPackUpdate}" />
+                </StackPanel>
+
+                <TextBlock Text="{Binding PackUpdateStatus}" TextWrapping="Wrap" FontSize="11"
+                           IsVisible="{Binding PackUpdateStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              </StackPanel>
+            </Border>
+
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+              <!-- Every button binds its enabled state to the view model. Upstream re-derives these by
+                   hand in updateButtons(), from six call sites. -->
+              <Button Content="Remove"
+                      Command="{Binding RemoveSelectedCommand}"
+                      IsEnabled="{Binding CanRemove}" />
+              <Button Content="Move up"
+                      Command="{Binding MoveSelectedUpCommand}"
+                      IsEnabled="{Binding CanMoveUp}" />
+              <Button Content="Move down"
+                      Command="{Binding MoveSelectedDownCommand}"
+                      IsEnabled="{Binding CanMoveDown}" />
+
+              <Button Content="Change version"
+                      Command="{Binding ChangeVersionCommand}"
+                      IsEnabled="{Binding CanPickVersion}" />
+
+              <!-- Add loader: upstream's InstallLoaderDialog, which is a uid picker in front of the
+                   same version list. A menu rather than a dialog, because there are exactly four and
+                   naming them is faster than a second window to choose between them. -->
+              <Button Content="Add loader" IsEnabled="{Binding CanAddLoader}">
+                <Button.Flyout>
+                  <MenuFlyout>
+                    <MenuItem Header="Fabric"
+                              Command="{Binding AddLoaderCommand}"
+                              CommandParameter="net.fabricmc.fabric-loader" />
+                    <MenuItem Header="Quilt"
+                              Command="{Binding AddLoaderCommand}"
+                              CommandParameter="org.quiltmc.quilt-loader" />
+                    <MenuItem Header="Forge"
+                              Command="{Binding AddLoaderCommand}"
+                              CommandParameter="net.minecraftforge" />
+                    <MenuItem Header="NeoForge"
+                              Command="{Binding AddLoaderCommand}"
+                              CommandParameter="net.neoforged" />
+                  </MenuFlyout>
+                </Button.Flyout>
+              </Button>
+
+              <!-- A blank hand-made component, for a jar mod or tweak with no metadata. -->
+              <Button Content="Add empty"
+                      Command="{Binding AddEmptyCommand}"
+                      IsEnabled="{Binding CanAddEmpty}" />
+
+              <Button Content="Reload" Command="{Binding ReloadCommand}" />
+
+              <!-- The instance's own folders, for when a fix has to be made by hand. -->
+              <Button Content="Minecraft folder"
+                      Command="{Binding OpenMinecraftFolderCommand}"
+                      IsEnabled="{Binding CanOpenMinecraftFolder}" />
+              <Button Content="Libraries folder"
+                      Command="{Binding OpenLibrariesFolderCommand}"
+                      IsEnabled="{Binding CanOpenLibrariesFolder}" />
+            </StackPanel>
+
+            <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                       Text="This instance has problems — see the rows marked below."
+                       IsVisible="{Binding HasProblems}"
+                       Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+
+            <ListBox ItemsSource="{Binding Components}"
+                     SelectedItem="{Binding Selected}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ComponentViewModel">
+                  <StackPanel Margin="2">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Version}"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+                      <!-- Said plainly rather than shown as an icon nobody can decode: these decide
+                           whether the buttons above will work on this row. -->
+                      <TextBlock Text="required"
+                                 IsVisible="{Binding IsImportant}"
+                                 FontSize="11" VerticalAlignment="Center"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                      <TextBlock Text="dependency"
+                                 IsVisible="{Binding IsDependencyOnly}"
+                                 FontSize="11" VerticalAlignment="Center"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                      <TextBlock Text="customised"
+                                 IsVisible="{Binding IsCustom}"
+                                 FontSize="11" VerticalAlignment="Center"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding Problems}"
+                               IsVisible="{Binding HasProblems}"
+                               TextWrapping="Wrap"
+                               FontSize="11"
+                               Margin="0,2,0,0"
+                               Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </DataTemplate>
+
+        <!-- ==================================================== Game options -->
+        <DataTemplate DataType="vm:GameOptionsPageViewModel">
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,8">
+              <TextBox Watermark="Search options" Text="{Binding SearchText, Mode=TwoWay}"
+                       IsVisible="{Binding HasOptions}" />
+
+              <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasOptions}">
+                <Button Content="Reload" Command="{Binding ReloadCommand}" />
+                <TextBlock VerticalAlignment="Center" FontSize="11"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           Text="{Binding FormatVersion, StringFormat='options.txt format version {0}'}" />
+              </StackPanel>
+            </StackPanel>
+
+            <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                       Text="{Binding Status}"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <!-- The ordinary state of a new instance, not an error, so it is explained rather than
+                 left as an empty list somebody has to interpret. -->
+            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                       TextAlignment="Center" TextWrapping="Wrap"
+                       IsVisible="{Binding IsMissing}"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                       Text="This instance has no options.txt yet. Minecraft writes one the first time it runs." />
+
+            <ScrollViewer IsVisible="{Binding HasOptions}">
+              <ItemsControl ItemsSource="{Binding Options}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:GameOptionViewModel">
+                    <Grid ColumnDefinitions="240,*" Margin="0,2">
+                      <TextBlock Grid.Column="0" Text="{Binding Key}"
+                                 VerticalAlignment="Center"
+                                 TextTrimming="CharacterEllipsis"
+                                 ToolTip.Tip="{Binding Key}" />
+                      <TextBox Grid.Column="1" Text="{Binding Value, Mode=TwoWay}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </DockPanel>
+        </DataTemplate>
+
+        <!-- ============================================================ Mods -->
+        <DataTemplate DataType="vm:ModsPageViewModel">
+          <DockPanel>
+
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+              <!-- One button whose label says what will HAPPEN, rather than two, or one naming the
+                   current state. "Enabled" is ambiguous about which way it goes. -->
+              <Button Content="{Binding ToggleLabel}"
+                      Command="{Binding ToggleSelectedCommand}"
+                      IsEnabled="{Binding HasSelection}" />
+              <Button Content="Remove"
+                      Command="{Binding DeleteSelectedCommand}"
+                      IsEnabled="{Binding HasSelection}" />
+              <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+
+              <!-- Opens this page's folder in the file manager, creating it first if need be. -->
+              <Button Content="View folder"
+                      Command="{Binding OpenFolderCommand}"
+                      IsEnabled="{Binding CanOpenFolder}" />
+
+              <!-- The reason this page exists. Needs no selection: you download a mod you do not
+                   have yet, so requiring one would be requiring the wrong thing. -->
+              <Button Content="{Binding AddLabel}"
+                      Command="{Binding AddCommand}"
+                      IsEnabled="{Binding CanAdd}" />
+
+              <!-- Writing down what is installed, for a forum post or the friend who asked. Mods
+                   only: a resource-pack list is not a thing anybody shares. -->
+              <Button Content="Export list"
+                      Command="{Binding ExportListCommand}"
+                      IsEnabled="{Binding CanExportList}" />
+
+              <!-- Only on the mods page: resource packs carry no version metadata to compare, so
+                   the button is absent there rather than present and always saying "nothing to do". -->
+              <Button Content="Check for updates"
+                      Command="{Binding CheckUpdatesCommand}"
+                      IsEnabled="{Binding CanCheckUpdates}"
+                      IsVisible="{Binding CanCheckUpdates}" />
+            </StackPanel>
+
+            <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                       Text="{Binding Status}"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <ListBox ItemsSource="{Binding Mods}" SelectedItem="{Binding Selected}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ModViewModel">
+                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="2">
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding Version}"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+                    <!-- Said in words rather than shown by a greyed-out row: whether the game will
+                         load this mod is the single thing this page is consulted about. -->
+                    <TextBlock Text="disabled"
+                               IsVisible="{Binding !IsEnabled}"
+                               FontSize="11" VerticalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+
+                    <TextBlock Text="{Binding SizeString}"
+                               FontSize="11" VerticalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </DataTemplate>
+
+        <!-- ============================================================ Worlds -->
+        <DataTemplate DataType="vm:WorldsPageViewModel">
+          <DockPanel>
+
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+              <!-- Import a world zip (or .mcworld). Named after the world inside, not the file. -->
+              <Button Content="Add"
+                      Command="{Binding AddCommand}"
+                      IsEnabled="{Binding CanAdd}" />
+
+              <Button Content="Rename"
+                      Command="{Binding RenameSelectedCommand}"
+                      IsEnabled="{Binding CanRename}" />
+
+              <!-- The safe way to experiment with a save: copy it, then break the copy. Needs a
+                   world whose level.dat parses, because the copy's name is written into it. -->
+              <Button Content="Copy"
+                      Command="{Binding CopySelectedCommand}"
+                      IsEnabled="{Binding CanCopy}" />
+
+              <!-- The seed as a bare number, for sharing or re-creating the world. Needs a parseable
+                   level.dat, which is where the number lives. -->
+              <Button Content="Copy seed"
+                      Command="{Binding CopySeedSelectedCommand}"
+                      IsEnabled="{Binding CanCopySeed}" />
+
+              <Button Content="Delete"
+                      Command="{Binding DeleteSelectedCommand}"
+                      IsEnabled="{Binding HasSelection}" />
+
+              <!-- Datapacks live inside the world; this opens that world's own datapacks folder. -->
+              <Button Content="Datapacks"
+                      Command="{Binding OpenDatapacksSelectedCommand}"
+                      IsEnabled="{Binding CanOpenDatapacks}" />
+
+              <!-- Removes the world's icon so the game redraws it. Off when there is no icon. -->
+              <Button Content="Reset icon"
+                      Command="{Binding ResetIconSelectedCommand}"
+                      IsEnabled="{Binding CanResetIcon}" />
+
+              <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+
+              <!-- Opens the saves folder in the file manager. -->
+              <Button Content="View folder"
+                      Command="{Binding OpenFolderCommand}"
+                      IsEnabled="{Binding CanOpenFolder}" />
+            </StackPanel>
+
+            <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                       Text="{Binding Status}"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <ListBox ItemsSource="{Binding Worlds}" SelectedItem="{Binding Selected}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:WorldViewModel">
+                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="2">
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding LastPlayedString}"
+                               FontSize="11" VerticalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+                    <!-- A save the launcher could not read is listed rather than hidden: hiding it is
+                         indistinguishable from having deleted it. -->
+                    <TextBlock Text="unreadable"
+                               IsVisible="{Binding !IsValid}"
+                               FontSize="11" VerticalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </DataTemplate>
+
+        <!-- ============================================================ Log -->
+        <DataTemplate DataType="vm:LogPageViewModel">
+          <DockPanel>
+
+            <TextBlock DockPanel.Dock="Top" Margin="0,0,0,6"
+                       Text="{Binding Status}"
+                       IsVisible="{Binding IsRunning}" />
+
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,6">
+              <!-- Somebody is on this page because they are about to paste it into a bug report.
+                   Selecting five thousand lines by dragging is not a way to do that. -->
+              <Button Content="Copy log" Command="{Binding CopyCommand}" />
+
+              <!-- The more useful of the two upload buttons: this is the log of the launch that just
+                   went wrong, which is the one somebody has open when they decide to ask for help. -->
+              <Button Content="Upload log" Command="{Binding UploadCommand}"
+                      IsVisible="{Binding CanUpload}"
+                      ToolTip.Tip="Upload this log to the paste service set in the launcher's settings." />
+              <TextBlock Text="{Binding CopyStatus}" VerticalAlignment="Center"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </StackPanel>
+
+            <TextBlock DockPanel.Dock="Top" Margin="0,0,0,6"
+                       Text="Nothing here yet. Press Launch to start this instance."
+                       IsVisible="{Binding IsEmpty}"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+            <!-- Selectable, because pasting a log into a bug report is what people do with this page. -->
+            <ScrollViewer>
+              <ItemsControl ItemsSource="{Binding Lines}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:LaunchLogLine">
+                    <SelectableTextBlock Text="{Binding Text}"
+                                         FontFamily="Consolas, Menlo, monospace"
+                                         FontSize="12"
+                                         TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </DockPanel>
+        </DataTemplate>
+
+        <!-- ============================================================ Other logs -->
+        <DataTemplate DataType="vm:OtherLogsPageViewModel">
+          <DockPanel>
+
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+              <ComboBox Width="280"
+                        ItemsSource="{Binding Files}"
+                        SelectedItem="{Binding Selected}"
+                        PlaceholderText="Pick a log file">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:LogFileViewModel">
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+
+              <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+              <Button Content="Copy" Command="{Binding CopyCommand}" />
+              <Button Content="Delete"
+                      Command="{Binding DeleteSelectedCommand}"
+                      IsEnabled="{Binding CanDelete}" />
+              <Button Content="Clean"
+                      Command="{Binding CleanCommand}"
+                      IsEnabled="{Binding CanClean}"
+                      ToolTip.Tip="Delete every log file in this instance." />
+
+              <!-- Hidden rather than disabled when there is nowhere to upload to: a permanently
+                   greyed button is a question nobody can answer. -->
+              <Button Content="Upload" Command="{Binding UploadCommand}"
+                      IsVisible="{Binding CanUpload}"
+                      ToolTip.Tip="Upload this log to the paste service set in the launcher's settings." />
+              <TextBlock Text="{Binding CopyStatus}" VerticalAlignment="Center"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </StackPanel>
+
+            <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                       Text="This instance has no log files yet."
+                       IsVisible="{Binding IsEmpty}"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+            <!-- Selectable and monospaced: pasting a log into a bug report is what this page is for. -->
+            <ScrollViewer>
+              <SelectableTextBlock Text="{Binding Content}"
+                                   FontFamily="Consolas, Menlo, monospace"
+                                   FontSize="12"
+                                   TextWrapping="NoWrap" />
+            </ScrollViewer>
+          </DockPanel>
+        </DataTemplate>
+
+        <!-- ============================================================ Screenshots -->
+        <DataTemplate DataType="vm:ScreenshotsPageViewModel">
+          <DockPanel>
+
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+              <Button Content="Rename"
+                      Command="{Binding RenameSelectedCommand}"
+                      IsEnabled="{Binding HasSelection}" />
+              <Button Content="Delete"
+                      Command="{Binding DeleteSelectedCommand}"
+                      IsEnabled="{Binding HasSelection}" />
+
+              <!-- The file's location, for pasting into an upload dialog or a terminal. -->
+              <Button Content="Copy path"
+                      Command="{Binding CopyPathSelectedCommand}"
+                      IsEnabled="{Binding CanCopyPath}" />
+
+              <!-- Hidden, not disabled, when this build has no image host configured: a permanently
+                   greyed Upload is a question nobody can answer. -->
+              <Button Content="Upload"
+                      Command="{Binding UploadSelectedCommand}"
+                      IsVisible="{Binding CanUpload}"
+                      ToolTip.Tip="Upload the selected screenshot and copy a shareable link." />
+
+              <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+
+              <!-- Opens the screenshots folder in the file manager. -->
+              <Button Content="View folder"
+                      Command="{Binding OpenFolderCommand}"
+                      IsEnabled="{Binding CanOpenFolder}" />
+            </StackPanel>
+
+            <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                       Text="{Binding Status}"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                       Text="This instance has no screenshots."
+                       IsVisible="{Binding IsEmpty}"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+            <ListBox ItemsSource="{Binding Screenshots}" SelectedItem="{Binding Selected}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ScreenshotViewModel">
+                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="2">
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding TakenString}"
+                               FontSize="11" VerticalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </DataTemplate>
+
+        <!-- ============================================================ Servers -->
+        <DataTemplate DataType="vm:ServersPageViewModel">
+          <DockPanel>
+
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+              <!-- Launches the instance straight into this server, through the window's own coordinator. -->
+              <Button Content="Join"
+                      Command="{Binding JoinSelectedCommand}"
+                      IsEnabled="{Binding CanJoin}" />
+
+              <Button Content="Add" Command="{Binding AddCommand}" IsEnabled="{Binding CanAdd}" />
+              <Button Content="Remove" Command="{Binding RemoveCommand}" IsEnabled="{Binding CanRemove}" />
+              <Button Content="Move up" Command="{Binding MoveUpCommand}" IsEnabled="{Binding CanMoveUp}" />
+              <Button Content="Move down" Command="{Binding MoveDownCommand}" IsEnabled="{Binding CanMoveDown}" />
+
+              <!-- The game rewrites this file when it exits, so re-reading it is a normal thing to
+                   want rather than a debugging aid. -->
+              <Button Content="Refresh" Command="{Binding RefreshCommand}" Margin="12,0,0,0" />
+            </StackPanel>
+
+            <!-- Why the page will not be edited, when it will not: the game is running, or the file
+                 could not be read. The second is the dangerous one - an empty list that is empty
+                 because nothing parsed, not because there are no servers. -->
+            <Border DockPanel.Dock="Top" Margin="0,0,0,8" Padding="8"
+                    IsVisible="{Binding LockReason, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                    CornerRadius="4">
+              <TextBlock Text="{Binding LockReason}" TextWrapping="Wrap" FontSize="11" />
+            </Border>
+
+            <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                       Text="No servers in this instance's multiplayer list."
+                       IsVisible="{Binding IsEmpty}"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+            <!-- The editor for the selected row, UNDER the list rather than inside it: a list of text
+                 boxes is unreadable at a glance, and reading the list is the whole reason to open
+                 this page. Disabled as a block when the page is locked. -->
+            <Border DockPanel.Dock="Bottom" Margin="0,10,0,0" Padding="10"
+                    IsVisible="{Binding HasSelection}"
+                    IsEnabled="{Binding IsEditable}"
+                    Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                    CornerRadius="4">
+              <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto,Auto"
+                    DataContext="{Binding Selected}"
+                    x:DataType="vm:ServerViewModel">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" FontSize="11" VerticalAlignment="Center" />
+                <TextBox Grid.Row="0" Grid.Column="1" Margin="0,2" Name="ServerName"
+                         Text="{Binding Name, Mode=TwoWay}" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Address" FontSize="11" VerticalAlignment="Center" />
+                <TextBox Grid.Row="1" Grid.Column="1" Margin="0,2" Name="ServerAddress"
+                         Watermark="example.invalid:25565"
+                         Text="{Binding Address, Mode=TwoWay}" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Resource packs" FontSize="11"
+                           VerticalAlignment="Center" TextWrapping="Wrap" />
+                <ComboBox Grid.Row="2" Grid.Column="1" Margin="0,2"
+                          HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding TextureChoices}"
+                          SelectedItem="{Binding SelectedTextureChoice, Mode=TwoWay}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TextureChoice">
+                      <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </Grid>
+            </Border>
+
+            <ListBox ItemsSource="{Binding Servers}" SelectedItem="{Binding Selected}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ServerViewModel">
+                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="2">
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding Address}"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    <TextBlock Text="{Binding TexturesDescription}"
+                               IsVisible="{Binding HasTexturesDescription}"
+                               FontSize="11" VerticalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </DataTemplate>
+
+        <!-- ============================================================ Settings -->
+        <DataTemplate DataType="vm:SettingsPageViewModel">
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding Groups}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:SettingsGroupViewModel">
+                  <Border Margin="0,0,0,14" Padding="10"
+                          BorderThickness="1"
+                          BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+                    <StackPanel Spacing="6">
+                      <!-- The group's own gate. Every field below follows it, so nobody types into a
+                           box whose value the launcher will ignore. -->
+                      <CheckBox Content="{Binding Title}" IsChecked="{Binding IsOverriding, Mode=TwoWay}" />
+
+                      <ItemsControl ItemsSource="{Binding Settings}" Margin="22,0,0,0">
+                        <ItemsControl.DataTemplates>
+
+                          <DataTemplate DataType="vm:TextSettingViewModel">
+                            <StackPanel Margin="0,3">
+                              <TextBlock Text="{Binding Label}" FontSize="11" />
+                              <TextBox Text="{Binding Value, Mode=TwoWay}"
+                                       IsEnabled="{Binding IsEditable}"
+                                       PasswordChar="{Binding MaskCharacter}" />
+                            </StackPanel>
+                          </DataTemplate>
+
+                          <DataTemplate DataType="vm:NumberSettingViewModel">
+                            <StackPanel Margin="0,3">
+                              <TextBlock Text="{Binding Label}" FontSize="11" />
+                              <NumericUpDown Value="{Binding Value, Mode=TwoWay}"
+                                             Minimum="0" Maximum="1048576"
+                                             FormatString="0"
+                                             IsEnabled="{Binding IsEditable}" />
+                            </StackPanel>
+                          </DataTemplate>
+
+                          <DataTemplate DataType="vm:ChoiceSettingViewModel">
+                            <StackPanel Margin="0,3">
+                              <TextBlock Text="{Binding Label}" FontSize="11" />
+                              <ComboBox HorizontalAlignment="Stretch"
+                                        ItemsSource="{Binding Choices}"
+                                        SelectedItem="{Binding Selected, Mode=TwoWay}"
+                                        IsEnabled="{Binding IsEditable}">
+                                <ComboBox.ItemTemplate>
+                                  <DataTemplate x:DataType="vm:SettingChoice">
+                                    <TextBlock Text="{Binding Label}" />
+                                  </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                              </ComboBox>
+                            </StackPanel>
+                          </DataTemplate>
+
+                          <DataTemplate DataType="vm:ToggleSettingViewModel">
+                            <CheckBox Margin="0,3"
+                                      Content="{Binding Label}"
+                                      IsChecked="{Binding Value, Mode=TwoWay}"
+                                      IsEnabled="{Binding IsEditable}" />
+                          </DataTemplate>
+
+                        </ItemsControl.DataTemplates>
+                      </ItemsControl>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DataTemplate>
+
+        <!-- ============================================================ Notes -->
+        <DataTemplate DataType="vm:NotesPageViewModel">
+          <TextBox Text="{Binding Text, Mode=TwoWay}"
+                   AcceptsReturn="True"
+                   TextWrapping="Wrap"
+                   Watermark="Notes about this instance."
+                   VerticalAlignment="Stretch"
+                   HorizontalAlignment="Stretch" />
+        </DataTemplate>
+
+      </ContentControl.DataTemplates>
+    </ContentControl>
+
+  </DockPanel>
+</Window>

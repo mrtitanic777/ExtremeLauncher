@@ -1,0 +1,124 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  The global settings window: upstream's pages/global/* collapsed into one scrolling window.
+
+  Upstream needs its page-list-and-stack machinery because the same widget also hosts the per-instance
+  pages; nothing here does, and ten short sections read better scrolled than hunted for in a sidebar.
+
+  The three editor templates are the SAME ONES the instance settings page uses, because they render
+  the same view models. Two copies would be two chances for a global and its per-instance override to
+  look different from each other — and this window is exactly where somebody compares them.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.GlobalSettingsWindow"
+        x:DataType="vm:GlobalSettingsViewModel"
+        Title="Settings"
+        Width="620" Height="620"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="12">
+
+    <!-- The buttons, docked so they never scroll away. Cancel is the DEFAULT, as in every other
+         dialog in this launcher: Return must not commit settings somebody was still reading. -->
+    <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0"
+                   VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Text="{Binding Status}" />
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+          <Button Content="Install Java…"
+                  Command="{Binding InstallJavaCommand}"
+                  IsEnabled="{Binding CanInstallJava}" />
+          <Button Name="RevertButton" Content="Revert" Command="{Binding RevertCommand}" />
+          <Button Name="CancelButton" Content="Cancel" IsCancel="True" IsDefault="True" />
+          <Button Name="SaveButton" Content="Save" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,10"
+               TextWrapping="Wrap"
+               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+               Text="These are the defaults every instance uses. An instance can override any of them on its own Settings page." />
+
+    <ScrollViewer>
+      <ItemsControl ItemsSource="{Binding Sections}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:GlobalSettingsSectionViewModel">
+            <Border Margin="0,0,0,14" Padding="10"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+              <StackPanel Spacing="6">
+                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+
+                <!-- Only where a section is genuinely obscure. A sentence under every heading is
+                     noise; a sentence under "Native workarounds" saves a support question. -->
+                <TextBlock Text="{Binding Description}"
+                           IsVisible="{Binding HasDescription}"
+                           TextWrapping="Wrap"
+                           FontSize="11"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+                <ItemsControl ItemsSource="{Binding Settings}" Margin="8,4,0,0">
+                  <ItemsControl.DataTemplates>
+
+                    <DataTemplate DataType="vm:TextSettingViewModel">
+                      <StackPanel Margin="0,3">
+                        <TextBlock Text="{Binding Label}" FontSize="11" />
+                        <TextBox Text="{Binding Value, Mode=TwoWay}"
+                                 IsEnabled="{Binding IsEditable}"
+                                 PasswordChar="{Binding MaskCharacter}" />
+                      </StackPanel>
+                    </DataTemplate>
+
+                    <DataTemplate DataType="vm:NumberSettingViewModel">
+                      <StackPanel Margin="0,3">
+                        <TextBlock Text="{Binding Label}" FontSize="11" />
+                        <NumericUpDown Value="{Binding Value, Mode=TwoWay}"
+                                       Minimum="0" Maximum="1048576"
+                                       FormatString="0"
+                                       IsEnabled="{Binding IsEditable}" />
+                      </StackPanel>
+                    </DataTemplate>
+
+                    <DataTemplate DataType="vm:ChoiceSettingViewModel">
+                      <StackPanel Margin="0,3">
+                        <TextBlock Text="{Binding Label}" FontSize="11" />
+                        <ComboBox HorizontalAlignment="Stretch"
+                                  ItemsSource="{Binding Choices}"
+                                  SelectedItem="{Binding Selected, Mode=TwoWay}"
+                                  IsEnabled="{Binding IsEditable}">
+                          <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:SettingChoice">
+                              <TextBlock Text="{Binding Label}" />
+                            </DataTemplate>
+                          </ComboBox.ItemTemplate>
+                        </ComboBox>
+                      </StackPanel>
+                    </DataTemplate>
+
+                    <DataTemplate DataType="vm:ToggleSettingViewModel">
+                      <CheckBox Margin="0,3"
+                                Content="{Binding Label}"
+                                IsChecked="{Binding Value, Mode=TwoWay}"
+                                IsEnabled="{Binding IsEditable}" />
+                    </DataTemplate>
+
+                  </ItemsControl.DataTemplates>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

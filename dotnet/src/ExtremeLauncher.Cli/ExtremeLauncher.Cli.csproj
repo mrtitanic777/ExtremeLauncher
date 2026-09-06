@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ExtremeLauncher.Cli</RootNamespace>
+    <AssemblyName>extremelauncher</AssemblyName>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ExtremeLauncher.Cli.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtremeLauncher.Core\ExtremeLauncher.Core.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Java\ExtremeLauncher.Java.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Launch\ExtremeLauncher.Launch.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Meta\ExtremeLauncher.Meta.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Minecraft\ExtremeLauncher.Minecraft.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Net\ExtremeLauncher.Net.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Settings\ExtremeLauncher.Settings.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Tasks\ExtremeLauncher.Tasks.csproj" />
+  </ItemGroup>
+
+</Project>

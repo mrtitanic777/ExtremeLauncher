@@ -1,0 +1,65 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  The launcher's OWN log, which until now existed on disk and nowhere in the launcher.
+
+  No upstream counterpart: Prism writes its log and leaves you to find it. That is a fair choice for a
+  launcher whose data folder people already know; it is a poor one when the next thing somebody is
+  asked for is "send us your launcher log" and the answer involves explaining where the data folder is.
+
+  The list, the reader and the Upload button are the SAME view model the instance's Other logs page
+  uses, pointed at a different folder. One implementation, so the caps on file size and the upload
+  confirmation cannot drift apart between the two places a log gets read.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.LauncherLogWindow"
+        x:DataType="vm:OtherLogsPageViewModel"
+        Title="Launcher log"
+        Width="900" Height="620"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="12">
+
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+      <ComboBox ItemsSource="{Binding Files}"
+                SelectedItem="{Binding Selected}"
+                PlaceholderText="Pick a log file"
+                MinWidth="320">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:LogFileViewModel">
+            <TextBlock Text="{Binding Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+
+      <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+      <Button Content="Copy" Command="{Binding CopyCommand}" />
+
+      <!-- The reason this window exists. "Send us your launcher log" is the question, and this is
+           the shortest possible answer to it. -->
+      <Button Content="Upload" Command="{Binding UploadCommand}"
+              IsVisible="{Binding CanUpload}"
+              ToolTip.Tip="Upload this log to the paste service set in the launcher's settings." />
+
+      <TextBlock Text="{Binding CopyStatus}" VerticalAlignment="Center" TextWrapping="Wrap"
+                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+    </StackPanel>
+
+    <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
+               Text="This launcher keeps its last five runs. The newest is at the top of the list."
+               FontSize="11"
+               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+    <TextBox Text="{Binding Content}"
+             IsReadOnly="True"
+             AcceptsReturn="True"
+             TextWrapping="NoWrap"
+             FontFamily="Consolas,Menlo,monospace"
+             VerticalContentAlignment="Top" />
+  </DockPanel>
+</Window>

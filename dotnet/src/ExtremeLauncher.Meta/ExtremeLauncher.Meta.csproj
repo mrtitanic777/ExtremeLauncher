@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.Meta</RootNamespace>
+    <AssemblyName>ExtremeLauncher.Meta</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtremeLauncher.Core\ExtremeLauncher.Core.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Minecraft\ExtremeLauncher.Minecraft.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- GetBetterVersion is internal but is the recommended-version tiebreak, worth testing directly. -->
+    <InternalsVisibleTo Include="ExtremeLauncher.Meta.Tests" />
+  </ItemGroup>
+
+</Project>

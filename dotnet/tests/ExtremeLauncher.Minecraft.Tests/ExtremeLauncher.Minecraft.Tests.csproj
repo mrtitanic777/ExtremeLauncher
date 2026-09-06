@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.Minecraft.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ExtremeLauncher.Minecraft\ExtremeLauncher.Minecraft.csproj" />
+  </ItemGroup>
+
+  <!-- Reuse the Qt suite's version-format fixtures rather than copying them. -->
+  <ItemGroup>
+    <Content Include="..\..\..\tests\testdata\MojangVersionFormat\*.json"
+             Link="testdata\MojangVersionFormat\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\tests\testdata\ResourcePackParse\**\*"
+             Link="testdata\ResourcePackParse\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\tests\testdata\DataPackParse\**\*"
+             Link="testdata\DataPackParse\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\tests\testdata\TexturePackParse\**\*"
+             Link="testdata\TexturePackParse\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\tests\testdata\ShaderPackParse\**\*"
+             Link="testdata\ShaderPackParse\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\tests\testdata\WorldSaveParse\**\*"
+             Link="testdata\WorldSaveParse\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\tests\testdata\packwiz\*.toml"
+             Link="testdata\packwiz\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\tests\testdata\MetaComponentParse\*.json"
+             Link="testdata\MetaComponentParse\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,137 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  Upstream's ResourceDownloadDialog: search a provider, add several mods, install the lot.
+
+  The layout is upstream's too — results on the left, the highlighted mod's details and version picker
+  on the right — because it is the right shape: you read a description to decide, and you need the
+  version list visible before adding rather than after.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        xmlns:mp="using:ExtremeLauncher.ModPlatform"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.ModDownloadWindow"
+        x:DataType="vm:ModDownloadViewModel"
+        Title="Download mods"
+        Width="900" Height="600"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="12">
+
+    <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <!-- How many are in the basket, always visible: the whole point of the dialog is that you
+             add several before installing, so the count must not be something you have to count. -->
+        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                   FontWeight="SemiBold"
+                   Text="{Binding SelectionSummary}" />
+
+        <TextBlock Grid.Column="1" Margin="12,0" VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Text="{Binding Status}" />
+
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
+          <Button Name="CancelButton" Content="Cancel" IsCancel="True" IsDefault="True" />
+          <Button Name="InstallButton" Content="Install"
+                  IsEnabled="{Binding CanInstall}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,8">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <ComboBox Grid.Column="0" Width="130"
+                  SelectedIndex="0"
+                  Name="ProviderBox">
+          <ComboBoxItem Content="Modrinth" />
+          <ComboBoxItem Content="CurseForge" />
+        </ComboBox>
+
+        <TextBox Grid.Column="1" Margin="6,0"
+                 Name="SearchBox"
+                 Watermark="Search for mods"
+                 Text="{Binding SearchText, Mode=TwoWay}" />
+
+        <Button Grid.Column="2" Name="SearchButton" Content="Search"
+                IsEnabled="{Binding CanSearch}" />
+      </Grid>
+
+      <!-- Stated, not implied: a list silently filtered to one Minecraft version and one loader
+           looks like a very thin catalogue if you do not know that is what you are seeing. -->
+      <TextBlock Text="{Binding FilterSummary}"
+                 FontSize="11"
+                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+    </StackPanel>
+
+    <Grid ColumnDefinitions="*,8,340">
+
+      <ListBox Grid.Column="0"
+               ItemsSource="{Binding Results}"
+               SelectedItem="{Binding Highlighted, Mode=TwoWay}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:ResourceResultViewModel">
+            <Grid ColumnDefinitions="Auto,*" Margin="2">
+              <!-- A tick rather than a highlight, because being IN the basket and being the row you
+                   are READING are different things, and both need to be visible at once. -->
+              <TextBlock Grid.Column="0" Text="✓"
+                         Margin="0,0,8,0" VerticalAlignment="Center"
+                         FontWeight="Bold"
+                         IsVisible="{Binding IsSelected}" />
+
+              <StackPanel Grid.Column="1">
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Description}"
+                           TextTrimming="CharacterEllipsis"
+                           FontSize="11"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <Border Grid.Column="2" Padding="10"
+              BorderThickness="1"
+              BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Top" Spacing="6"
+                      IsVisible="{Binding Highlighted, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBlock Text="{Binding Highlighted.Name}" FontWeight="SemiBold" FontSize="15"
+                       TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Highlighted.Authors}" FontSize="11"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            <TextBlock Text="{Binding Highlighted.Description}" TextWrapping="Wrap" />
+
+            <TextBlock Text="Version" FontSize="11" Margin="0,8,0,0" />
+            <ComboBox HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding Highlighted.Versions}"
+                      SelectedItem="{Binding Highlighted.SelectedVersion, Mode=TwoWay}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="mp:IndexedVersion">
+                  <TextBlock Text="{Binding Version}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <Button Name="ToggleButton"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Margin="0,8,0,0"
+                    Command="{Binding ToggleSelectedCommand}"
+                    Content="Add / remove" />
+          </StackPanel>
+
+          <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                     TextWrapping="Wrap" TextAlignment="Center"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                     Text="Search, then pick a mod to see what it is and which version to install."
+                     IsVisible="{Binding Highlighted, Converter={x:Static ObjectConverters.IsNull}}" />
+        </DockPanel>
+      </Border>
+    </Grid>
+  </DockPanel>
+</Window>

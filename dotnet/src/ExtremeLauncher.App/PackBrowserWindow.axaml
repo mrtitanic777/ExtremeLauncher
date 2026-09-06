@@ -1,0 +1,109 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  Upstream's ModrinthPage, inside its NewInstanceDialog: search for a modpack, pick a version, install.
+
+  The layout follows the mod browser next door — results on the left, the highlighted pack's details
+  and version list on the right — because it is the same decision made the same way: read a
+  description to choose the pack, then read a version list to choose the release.
+
+  The version list gets more room here than it does there, because with 463 versions on a popular pack
+  it is the harder half of the choice.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.PackBrowserWindow"
+        x:DataType="vm:PackBrowserViewModel"
+        Title="Install a modpack"
+        Width="900" Height="620"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="12">
+
+    <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap"
+                   Text="{Binding Status}" />
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+          <!-- Cancel is the default, as everywhere else here: a stray Return must not start a
+               170 MB download and create an instance. -->
+          <Button Name="CancelButton" Content="Cancel" IsCancel="True" IsDefault="True" />
+          <Button Name="InstallButton" Content="Install"
+                  IsEnabled="{Binding CanInstall}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,10">
+      <TextBox Name="SearchBox" Width="360"
+               Watermark="Search Modrinth for modpacks"
+               Text="{Binding SearchText, Mode=TwoWay}" />
+      <Button Name="SearchButton" Content="Search" IsEnabled="{Binding CanSearch}" />
+
+      <ProgressBar IsIndeterminate="True" Width="90" VerticalAlignment="Center"
+                   IsVisible="{Binding IsSearching}" />
+    </StackPanel>
+
+    <Grid ColumnDefinitions="2*,8,3*">
+
+      <ListBox Grid.Column="0"
+               ItemsSource="{Binding Results}"
+               SelectedItem="{Binding SelectedPack, Mode=TwoWay}">
+        <ListBox.ItemTemplate>
+          <DataTemplate DataType="vm:PackResultViewModel">
+            <StackPanel Margin="0,3">
+              <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding Authors}" FontSize="11"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+              <TextBlock Text="{Binding Description}" FontSize="11"
+                         TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <GridSplitter Grid.Column="1" ResizeDirection="Columns" Background="Transparent" />
+
+      <DockPanel Grid.Column="2" IsVisible="{Binding SelectedPack, Converter={x:Static ObjectConverters.IsNotNull}}">
+
+        <TextBlock DockPanel.Dock="Top" FontWeight="SemiBold" FontSize="15"
+                   Text="{Binding SelectedPack.Name}" />
+
+        <TextBlock DockPanel.Dock="Top" Margin="0,4,0,10" TextWrapping="Wrap"
+                   Text="{Binding SelectedPack.Description}" />
+
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Spacing="4">
+          <TextBlock Text="Instance name" FontSize="11" />
+          <TextBox Text="{Binding InstanceName, Mode=TwoWay}"
+                   Watermark="{Binding SelectedPack.Name}" />
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,6">
+          <TextBlock Text="Version" FontWeight="SemiBold" VerticalAlignment="Center" />
+
+          <!-- Ticked by default. A popular pack's newest releases are routinely betas for a
+               Minecraft snapshot, so the unfiltered list opens on versions almost nobody wants. -->
+          <CheckBox Content="Stable releases only"
+                    IsChecked="{Binding ReleasesOnly, Mode=TwoWay}" />
+
+          <ProgressBar IsIndeterminate="True" Width="70" VerticalAlignment="Center"
+                       IsVisible="{Binding SelectedPack.IsLoadingVersions}" />
+        </StackPanel>
+
+        <ListBox ItemsSource="{Binding Selection}"
+                 SelectedItem="{Binding SelectedVersion, Mode=TwoWay}">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:PackVersionViewModel">
+              <TextBlock Text="{Binding Label}" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Grid>
+  </DockPanel>
+</Window>

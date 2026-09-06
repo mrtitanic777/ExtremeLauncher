@@ -1,0 +1,12 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ExtremeLauncher.App.App"
+             RequestedThemeVariant="Default">
+
+  <!-- Default follows the desktop's own light/dark setting, which is what a user expects of a native
+       application and what Qt gave them for free. -->
+  <Application.Styles>
+    <FluentTheme />
+  </Application.Styles>
+
+</Application>

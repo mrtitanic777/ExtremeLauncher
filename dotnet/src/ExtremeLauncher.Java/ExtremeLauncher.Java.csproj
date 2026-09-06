@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.Java</RootNamespace>
+    <AssemblyName>ExtremeLauncher.Java</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtremeLauncher.Core\ExtremeLauncher.Core.csproj" />
+    <!-- java/download/* are LauncherTasks that fetch runtimes over the network. -->
+    <ProjectReference Include="..\ExtremeLauncher.Tasks\ExtremeLauncher.Tasks.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Net\ExtremeLauncher.Net.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- JavaChecker unpacks this and runs it on a candidate JVM. See Resources/README.md. -->
+    <EmbeddedResource Include="Resources\JavaCheck.jar" LogicalName="ExtremeLauncher.Java.JavaCheck.jar" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Registry scanning for installed JVMs; Windows-only, call sites are guarded. -->
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <!-- ProbeExecutable is the javaw.exe/java.exe swap; small, and exactly the kind of thing that
+         gets "tidied" back into a bug without a test naming it. -->
+    <InternalsVisibleTo Include="ExtremeLauncher.Java.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.App.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+
+    <!--
+      The app is a WinExe. Referencing it from a test project keeps its own output type, which the
+      test host cannot load, so this one is a library that happens to reference an executable.
+    -->
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+
+    <!--
+      Renders the real windows with no display attached, so the XAML, the bindings and the
+      DataTemplates are all actually exercised. Everything about this port's UI was unverified before
+      this package: the build type-checks compiled bindings and nothing else.
+    -->
+    <PackageReference Include="Avalonia.Headless.XUnit" Version="11.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ExtremeLauncher.App\ExtremeLauncher.App.csproj" />
+  </ItemGroup>
+
+</Project>

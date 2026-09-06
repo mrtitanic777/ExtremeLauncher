@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.Settings</RootNamespace>
+    <AssemblyName>ExtremeLauncher.Settings</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtremeLauncher.Core\ExtremeLauncher.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      The QSettings-dialect escaping helpers are implementation detail, but they are the riskiest part
+      of this file and deserve direct tests rather than only round-trip coverage.
+    -->
+    <InternalsVisibleTo Include="ExtremeLauncher.Settings.Tests" />
+  </ItemGroup>
+
+</Project>

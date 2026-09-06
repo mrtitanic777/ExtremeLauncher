@@ -1,0 +1,70 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  Upstream's InstallJavaDialog: pick a runtime and have the launcher fetch it.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        xmlns:launch="using:ExtremeLauncher.Launch"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.JavaInstallWindow"
+        x:DataType="vm:JavaInstallViewModel"
+        Title="Install Java"
+        Width="560" Height="480"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="12">
+
+    <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Text="{Binding Status}" />
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+          <!-- Indeterminate, because the install task's per-file progress is not threaded through
+               to this window yet. A Mojang runtime downloads file by file and takes minutes; a bar
+               that is merely cycling still says the difference between working and hung. -->
+          <ProgressBar IsIndeterminate="True" Width="80" VerticalAlignment="Center"
+                       IsVisible="{Binding IsBusy}" />
+
+          <Button Name="CloseButton" Content="Close" IsCancel="True" IsDefault="True" />
+          <Button Content="Install"
+                  Command="{Binding InstallCommand}"
+                  IsEnabled="{Binding CanInstall}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+      <TextBlock Text="Java version" VerticalAlignment="Center" />
+
+      <!-- The only number that decides compatibility. The full list is over two hundred runtimes and
+           almost nobody wants to read it; they want "the Java 17 one". -->
+      <ComboBox Width="110"
+                ItemsSource="{Binding Majors}"
+                SelectedItem="{Binding SelectedMajor, Mode=TwoWay}" />
+
+      <Button Content="Refresh"
+              Command="{Binding LoadCommand}"
+              IsEnabled="{Binding CanLoad}" />
+    </StackPanel>
+
+    <ListBox ItemsSource="{Binding Runtimes}"
+             SelectedItem="{Binding Selected, Mode=TwoWay}">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="launch:InstallableJava">
+          <StackPanel Margin="2">
+            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+            <TextBlock FontSize="11"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                       Text="{Binding Runtime.RuntimeOS}" />
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+</Window>

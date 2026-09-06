@@ -1,0 +1,68 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  Upstream's ExportInstanceDialog and ExportPackDialog, as one window with a mode.
+
+  The choice between "a backup" and "something to share" is the first thing the user has to make, and
+  putting it behind two separate menu entries makes it a guess rather than a choice.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.ExportWindow"
+        x:DataType="vm:ExportViewModel"
+        Title="Export instance"
+        Width="520" Height="440"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="12">
+
+    <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Text="{Binding Status}" />
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+          <Button Name="CloseButton" Content="Close" IsCancel="True" IsDefault="True" />
+          <Button Name="ExportButton" Content="Export…"
+                  Command="{Binding ExportCommand}"
+                  IsEnabled="{Binding CanExport}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <StackPanel Spacing="10">
+      <TextBlock Text="{Binding InstanceName}" FontWeight="SemiBold" FontSize="15" />
+
+      <RadioButton Name="PackRadio" GroupName="kind" IsChecked="True"
+                   Content="Modrinth modpack (.mrpack)" />
+      <RadioButton Name="CurseForgeRadio" GroupName="kind"
+                   Content="CurseForge modpack (.zip)" />
+      <RadioButton Name="ZipRadio" GroupName="kind"
+                   Content="Whole instance (.zip)" />
+
+      <!-- What the choice actually means, in a sentence. The two formats differ in ways that are
+           not obvious from their names and that matter a great deal to the result. -->
+      <TextBlock Text="{Binding KindDescription}"
+                 TextWrapping="Wrap"
+                 FontSize="11"
+                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+      <StackPanel Spacing="6" IsVisible="{Binding ShowsPackFields}">
+        <TextBlock Text="Pack name" FontSize="11" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Name, Mode=TwoWay}" />
+
+        <TextBlock Text="Version" FontSize="11" />
+        <TextBox Text="{Binding Version, Mode=TwoWay}" />
+
+        <TextBlock Text="Summary (optional)" FontSize="11" />
+        <TextBox Text="{Binding Summary, Mode=TwoWay}"
+                 AcceptsReturn="True" Height="60" TextWrapping="Wrap" />
+      </StackPanel>
+    </StackPanel>
+  </DockPanel>
+</Window>

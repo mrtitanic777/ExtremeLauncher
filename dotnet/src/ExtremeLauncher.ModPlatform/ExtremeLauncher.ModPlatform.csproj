@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.ModPlatform</RootNamespace>
+    <AssemblyName>ExtremeLauncher.ModPlatform</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtremeLauncher.Core\ExtremeLauncher.Core.csproj" />
+    <!-- The API clients fetch and the install tasks run as tasks. -->
+    <ProjectReference Include="..\ExtremeLauncher.Net\ExtremeLauncher.Net.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Tasks\ExtremeLauncher.Tasks.csproj" />
+    <!-- Resources are identified by the Minecraft-side parsers before they are matched to a provider. -->
+    <ProjectReference Include="..\ExtremeLauncher.Minecraft\ExtremeLauncher.Minecraft.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- packwiz index files are TOML. Pinned: 2.x drops Toml.TryToModel for a different serializer. -->
+    <PackageReference Include="Tomlyn" Version="0.19.0" />
+  </ItemGroup>
+
+</Project>

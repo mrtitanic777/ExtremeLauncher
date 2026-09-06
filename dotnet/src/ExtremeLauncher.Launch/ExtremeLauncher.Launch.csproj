@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.Launch</RootNamespace>
+    <AssemblyName>ExtremeLauncher.Launch</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtremeLauncher.Core\ExtremeLauncher.Core.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Minecraft\ExtremeLauncher.Minecraft.csproj" />
+    <!-- AutoInstallJava reads the runtime list out of the meta index. -->
+    <ProjectReference Include="..\ExtremeLauncher.Meta\ExtremeLauncher.Meta.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Java\ExtremeLauncher.Java.csproj" />
+    <!-- NativesExtractor is a LauncherTask. -->
+    <ProjectReference Include="..\ExtremeLauncher.Tasks\ExtremeLauncher.Tasks.csproj" />
+    <!-- ModrinthImportTask turns a .mrpack into an instance. The dependency goes this way round because
+         writing an instance needs PackProfile, and ModPlatform sits below Meta: parsing a pack format
+         should not require the component system. -->
+    <ProjectReference Include="..\ExtremeLauncher.ModPlatform\ExtremeLauncher.ModPlatform.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <!-- ReplaceSuffix is the .jnilib rename; small but worth testing directly. -->
+    <InternalsVisibleTo Include="ExtremeLauncher.Launch.Tests" />
+  </ItemGroup>
+
+</Project>

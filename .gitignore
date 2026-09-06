@@ -56,3 +56,14 @@ flatbuild
 
 # Snap
 *.snap
+
+# .NET
+[Bb]in/
+[Oo]bj/
+*.user
+.nuget/
+artifacts/
+
+# API credentials, supplied at runtime rather than compiled in (see BuildConfigOverrides).
+# This file holds the CurseForge key, which is a real secret. It must never be committed.
+credentials.json

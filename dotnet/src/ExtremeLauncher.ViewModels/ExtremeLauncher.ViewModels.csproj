@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.ViewModels</RootNamespace>
+    <AssemblyName>ExtremeLauncher.ViewModels</AssemblyName>
+  </PropertyGroup>
+
+  <!-- No Avalonia reference, deliberately: the view models must be runnable in a test process with
+       no windowing system, which is the only way any of this gets tested on a machine with no display. -->
+  <ItemGroup>
+    <ProjectReference Include="..\ExtremeLauncher.Core\ExtremeLauncher.Core.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Launch\ExtremeLauncher.Launch.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Minecraft\ExtremeLauncher.Minecraft.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.ModPlatform\ExtremeLauncher.ModPlatform.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Source-generated INotifyPropertyChanged, so the view models carry no framework of their own. -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+
+</Project>

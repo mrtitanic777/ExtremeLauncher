@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.Core.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <!-- Windows-only path cases mirror the #if defined(Q_OS_WIN) blocks in FileSystem_test.cpp. -->
+    <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ExtremeLauncher.Core\ExtremeLauncher.Core.csproj" />
+  </ItemGroup>
+
+  <!--
+    Reuse the Qt test suite's data files verbatim rather than copying them, so the C++ and C#
+    implementations are held to a single shared contract.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\..\tests\testdata\Version\test_vectors.txt"
+             Link="testdata\Version\test_vectors.txt"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    A real capture of the fork's live news feed (23 entries, 37 KB, fetched 2026-08-20). Kept as a
+    fixture because the live feed changes: the parser is proved against what the server actually
+    serves, and a separate skippable test fetches the live one so a format change is noticed.
+  -->
+  <ItemGroup>
+    <Content Include="testdata/news-feed.xml"
+             Link="testdata/news-feed.xml"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

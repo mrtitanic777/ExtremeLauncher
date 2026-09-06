@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.Tasks</RootNamespace>
+    <AssemblyName>ExtremeLauncher.Tasks</AssemblyName>
+    <!--
+      Required by the [LibraryImport] source generator, which emits unsafe string marshalling for the
+      CreateHardLinkW / link() P/Invokes in CreateLinkTask. Scoped to this project deliberately: the
+      rest of the tree stays safe-only.
+    -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtremeLauncher.Core\ExtremeLauncher.Core.csproj" />
+  </ItemGroup>
+
+</Project>

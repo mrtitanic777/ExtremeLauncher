@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.Net</RootNamespace>
+    <AssemblyName>ExtremeLauncher.Net</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtremeLauncher.Core\ExtremeLauncher.Core.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Tasks\ExtremeLauncher.Tasks.csproj" />
+  </ItemGroup>
+
+</Project>

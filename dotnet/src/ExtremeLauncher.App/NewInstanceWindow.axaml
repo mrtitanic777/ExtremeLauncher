@@ -1,0 +1,99 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        x:Class="ExtremeLauncher.App.NewInstanceWindow"
+        x:DataType="vm:NewInstanceViewModel"
+        Title="New instance"
+        Width="560" Height="520"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="16">
+
+    <StackPanel DockPanel.Dock="Top" Spacing="8">
+      <TextBlock Text="Name" FontSize="11" />
+      <TextBox Text="{Binding Name, Mode=TwoWay}" Watermark="What to call this instance" />
+
+      <TextBlock Text="Group (optional)" FontSize="11" Margin="0,6,0,0" />
+      <TextBox Text="{Binding Group, Mode=TwoWay}" Watermark="Leave empty for none" />
+
+      <!-- Hidden by default, as upstream hides them: the real list is well over a thousand entries,
+           nearly all of them 2011 alphas and weekly snapshots. -->
+      <CheckBox Content="Show snapshots and old versions"
+                IsChecked="{Binding ShowAllVersions, Mode=TwoWay}"
+                Margin="0,6,0,0" />
+
+      <TextBlock Text="{Binding Error}"
+                 IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+    </StackPanel>
+
+    <!-- The buttons, along the bottom. Create is disabled until there is both a name and a version:
+         an unnamed instance is a directory called nothing, and an unchosen version is the typo the
+         list exists to prevent. -->
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8"
+                HorizontalAlignment="Right" Margin="0,12,0,0">
+      <ProgressBar Width="120" IsIndeterminate="True"
+                   IsVisible="{Binding IsLoading}"
+                   VerticalAlignment="Center" />
+      <Button Content="Cancel" Name="CancelButton" IsDefault="True" MinWidth="90" />
+      <Button Content="Create" Name="CreateButton" MinWidth="90"
+              IsEnabled="{Binding CanCreate}" />
+    </StackPanel>
+
+    <!-- The loader, below the Minecraft list. Forge and NeoForge publish a build per Minecraft
+         version and are filtered by it; Fabric and Quilt declare nothing, so every version is offered
+         from 1.14 onwards and none before. See NewInstanceViewModel. -->
+    <StackPanel DockPanel.Dock="Bottom" Spacing="6" Margin="0,12,0,0">
+      <TextBlock Text="Mod loader" FontSize="11" />
+
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <ComboBox Width="140"
+                  ItemsSource="{Binding Loaders}"
+                  SelectedItem="{Binding Loader, Mode=TwoWay}" />
+
+        <ComboBox Width="200"
+                  ItemsSource="{Binding LoaderVersions}"
+                  SelectedItem="{Binding SelectedLoaderVersion}"
+                  IsVisible="{Binding !Loader.IsNone}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:VersionViewModel">
+              <TextBlock Text="{Binding Version}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <TextBlock Text="{Binding LoaderNote}"
+                   IsVisible="{Binding LoaderNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+      </StackPanel>
+    </StackPanel>
+
+    <Border Margin="0,12,0,0" BorderThickness="1"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+      <ListBox ItemsSource="{Binding Versions}" SelectedItem="{Binding Selected}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:VersionViewModel">
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="2">
+              <TextBlock Text="{Binding Version}" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding ReleasedString}"
+                         FontSize="11" VerticalAlignment="Center"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+              <TextBlock Text="{Binding Type}"
+                         IsVisible="{Binding !IsRelease}"
+                         FontSize="11" VerticalAlignment="Center"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+              <TextBlock Text="latest"
+                         IsVisible="{Binding IsRecommended}"
+                         FontSize="11" VerticalAlignment="Center"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Border>
+
+  </DockPanel>
+</Window>

@@ -1,0 +1,80 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  Upstream's IconPickerDialog: a grid of icons, plus Add and Remove for the user's own.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        xmlns:app="using:ExtremeLauncher.App"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.IconPickerWindow"
+        x:DataType="vm:IconPickerViewModel"
+        Title="Choose an icon"
+        Width="560" Height="480"
+        WindowStartupLocation="CenterOwner">
+
+  <Window.Resources>
+    <app:IconImageConverter x:Key="IconImage" />
+  </Window.Resources>
+
+  <DockPanel Margin="12">
+
+    <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+        <Button Grid.Column="0" Content="Add…"
+                Command="{Binding ImportCommand}"
+                IsEnabled="{Binding CanImport}" />
+
+        <Button Grid.Column="1" Margin="6,0,0,0" Content="Remove"
+                Command="{Binding RemoveCommand}"
+                IsEnabled="{Binding CanRemove}" />
+
+        <TextBlock Grid.Column="2" Margin="12,0" VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Text="{Binding Status}" />
+
+        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6">
+          <!-- Cancel is the DEFAULT, as everywhere else here. -->
+          <Button Name="CancelButton" Content="Cancel" IsCancel="True" IsDefault="True" />
+          <Button Name="AcceptButton" Content="OK" IsEnabled="{Binding CanAccept}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <ScrollViewer>
+      <ListBox ItemsSource="{Binding Icons}"
+               SelectedItem="{Binding Selected, Mode=TwoWay}">
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
+
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:IconViewModel">
+            <StackPanel Width="88" Margin="4" Spacing="4">
+              <Image Width="64" Height="64"
+                     Source="{Binding Entry, Converter={StaticResource IconImage}}" />
+
+              <TextBlock Text="{Binding DisplayName}"
+                         TextAlignment="Center"
+                         TextTrimming="CharacterEllipsis"
+                         FontSize="11" />
+
+              <!-- Said outright rather than left as a blank square: this build cannot draw an SVG,
+                   and a silently empty tile reads as a broken icon rather than an unsupported one. -->
+              <TextBlock Text="cannot preview"
+                         TextAlignment="Center"
+                         FontSize="10" FontStyle="Italic"
+                         IsVisible="{Binding !IsRenderable}"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

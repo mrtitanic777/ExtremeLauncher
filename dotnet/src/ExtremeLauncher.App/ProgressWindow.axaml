@@ -1,0 +1,50 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  Upstream's ProgressDialog: shown over whatever asked for the work, closes itself when it is done.
+
+  Deliberately small and fixed-size. It is not a window anybody wants to look at; it is a window that
+  says the launcher has not hung.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.ProgressWindow"
+        x:DataType="vm:TaskProgressViewModel"
+        Title="{Binding Title}"
+        Width="460" SizeToContent="Height"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+  <StackPanel Margin="16" Spacing="10">
+
+    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14" TextWrapping="Wrap" />
+
+    <!-- The status line is the useful half. A bar tells you it is alive; "Downloading sodium" tells
+         you what it is doing and roughly how much is left. -->
+    <TextBlock Text="{Binding Status}" TextWrapping="Wrap" MinHeight="32"
+               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+    <Grid ColumnDefinitions="*,Auto">
+      <ProgressBar Grid.Column="0"
+                   Minimum="0"
+                   Maximum="{Binding Total}"
+                   Value="{Binding Current}"
+                   IsIndeterminate="{Binding IsIndeterminate}" />
+
+      <TextBlock Grid.Column="1" VerticalAlignment="Center" MinWidth="40" Margin="8,0,0,0"
+                 Text="{Binding ProgressText}" />
+    </Grid>
+
+    <!-- Only for work that can actually be stopped. A Cancel button that does nothing is worse than
+         no Cancel button, because somebody will press it and then press it again. -->
+    <Button Name="CancelButton" Content="Cancel"
+            HorizontalAlignment="Right"
+            IsVisible="{Binding CanCancel}"
+            Command="{Binding CancelCommand}" />
+  </StackPanel>
+</Window>

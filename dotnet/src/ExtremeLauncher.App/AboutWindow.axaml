@@ -1,0 +1,78 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  Upstream's AboutDialog, minus the network-fetched credits and patrons tabs.
+
+  The parts kept are the ones somebody answering a bug report needs: what version this is, what it is
+  running on, where its files are, and one button that puts all of that on the clipboard.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.AboutWindow"
+        x:DataType="vm:AboutViewModel"
+        Title="About"
+        Width="520" Height="440"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="16">
+
+    <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <!-- The reason the dialog has a button at all: asking somebody to retype a commit hash is how
+             bug reports arrive with the wrong one. -->
+        <Button Grid.Column="0" Name="CopyButton" Content="Copy details" />
+
+        <TextBlock Grid.Column="1" Margin="10,0" VerticalAlignment="Center"
+                   FontSize="11"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   Name="CopyStatus" />
+
+        <Button Grid.Column="2" Name="CloseButton" Content="Close" IsCancel="True" IsDefault="True" />
+      </Grid>
+    </Border>
+
+    <ScrollViewer>
+      <StackPanel Spacing="10">
+        <TextBlock Text="{Binding Name}" FontSize="22" FontWeight="SemiBold" />
+        <SelectableTextBlock Text="{Binding Version}" FontSize="14" />
+
+        <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,8,0,0">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Platform" FontSize="11" />
+          <SelectableTextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Platform}" FontSize="11" />
+
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Running on" FontSize="11" />
+          <SelectableTextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Runtime}"
+                               FontSize="11" TextWrapping="Wrap" />
+
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="Commit" FontSize="11"
+                     IsVisible="{Binding HasCommit}" />
+          <SelectableTextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Commit}"
+                               FontSize="11" FontFamily="Consolas,Menlo,monospace"
+                               IsVisible="{Binding HasCommit}" />
+
+          <TextBlock Grid.Row="3" Grid.Column="0" Text="Data folder" FontSize="11"
+                     IsVisible="{Binding HasDataDirectory}" />
+          <SelectableTextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DataDirectory}"
+                               FontSize="11" TextWrapping="Wrap"
+                               IsVisible="{Binding HasDataDirectory}" />
+        </Grid>
+
+        <SelectableTextBlock Text="{Binding SourceUrl}" FontSize="11" Margin="0,8,0,0" />
+        <TextBlock Text="{Binding Copyright}" FontSize="11"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+        <!-- Stated, not linked. This is GPL-3.0 software and the licence requires the user be told;
+             a dialog that only shows a version and a URL does not do that. -->
+        <Border Margin="0,10,0,0" Padding="10"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+          <SelectableTextBlock Text="{Binding License}" TextWrapping="Wrap" FontSize="11" />
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

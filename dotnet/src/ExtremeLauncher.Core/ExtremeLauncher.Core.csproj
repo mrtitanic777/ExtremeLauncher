@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.Core</RootNamespace>
+    <AssemblyName>ExtremeLauncher.Core</AssemblyName>
+
+    <!-- Required by [LibraryImport] in NativeLink.cs; the generator emits unsafe marshalling code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- CRC-32 for validating gzip trailers; see GZip.HasValidTrailer. -->
+    <PackageReference Include="System.IO.Hashing" Version="9.0.0" />
+  </ItemGroup>
+
+</Project>

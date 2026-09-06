@@ -1,0 +1,91 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  Upstream's ExportToModListDialog: pick a format, see the result, copy or save it.
+
+  The preview is most of the window because it is the point — five formats and four optional fields
+  is twenty combinations, and nobody can picture "markdown without authors" without looking at it.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.ModListExportWindow"
+        x:DataType="vm:ModListExportViewModel"
+        Title="Export mod list"
+        Width="700" Height="560"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="12">
+
+    <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Text="{Binding Status}" />
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+          <Button Name="CloseButton" Content="Close" IsCancel="True" IsDefault="True" />
+          <Button Content="Copy"
+                  Command="{Binding CopyCommand}"
+                  IsEnabled="{Binding CanExport}" />
+          <Button Content="Save…"
+                  Command="{Binding SaveCommand}"
+                  IsEnabled="{Binding CanExport}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,10">
+      <Grid ColumnDefinitions="Auto,160,*">
+        <TextBlock Grid.Column="0" Text="Format" VerticalAlignment="Center" Margin="0,0,8,0" />
+
+        <ComboBox Grid.Column="1"
+                  ItemsSource="{Binding Formats}"
+                  SelectedItem="{Binding Format, Mode=TwoWay}" />
+
+        <TextBlock Grid.Column="2" Margin="12,0,0,0" VerticalAlignment="Center"
+                   FontSize="11"
+                   Text="{Binding ModCount, StringFormat='{}{0} mods'}"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+      </Grid>
+
+      <!-- What the chosen format's line looks like, so the choice is made by reading rather than by
+           trying each one in turn. -->
+      <SelectableTextBlock Text="{Binding ExampleLine}"
+                           FontFamily="Consolas,Menlo,monospace"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding ShowsFieldOptions}"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+      <StackPanel Orientation="Horizontal" Spacing="14" IsVisible="{Binding ShowsFieldOptions}">
+        <CheckBox Content="Version" IsChecked="{Binding IncludeVersion, Mode=TwoWay}" />
+        <CheckBox Content="Link" IsChecked="{Binding IncludeUrl, Mode=TwoWay}" />
+        <CheckBox Content="Authors" IsChecked="{Binding IncludeAuthors, Mode=TwoWay}" />
+        <CheckBox Content="File name" IsChecked="{Binding IncludeFileName, Mode=TwoWay}" />
+      </StackPanel>
+
+      <!-- Only for a custom format: the field boxes above mean nothing when the user writes the
+           line themselves. -->
+      <StackPanel Spacing="4" IsVisible="{Binding IsCustom}">
+        <TextBlock Text="Line template — {name} {url} {version} {authors} {filename}" FontSize="11" />
+        <TextBox Text="{Binding CustomTemplate, Mode=TwoWay}"
+                 FontFamily="Consolas,Menlo,monospace" />
+      </StackPanel>
+    </StackPanel>
+
+    <Border BorderThickness="1"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+      <ScrollViewer>
+        <SelectableTextBlock Text="{Binding Preview}"
+                             Margin="8"
+                             FontFamily="Consolas,Menlo,monospace"
+                             FontSize="12"
+                             TextWrapping="NoWrap" />
+      </ScrollViewer>
+    </Border>
+  </DockPanel>
+</Window>

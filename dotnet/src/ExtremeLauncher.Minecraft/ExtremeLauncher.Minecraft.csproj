@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.Minecraft</RootNamespace>
+    <AssemblyName>ExtremeLauncher.Minecraft</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtremeLauncher.Core\ExtremeLauncher.Core.csproj" />
+    <!-- Library.GetDownloads builds cached Download tasks. -->
+    <ProjectReference Include="..\ExtremeLauncher.Net\ExtremeLauncher.Net.csproj" />
+    <!-- VersionFile.Runtimes holds Java metadata; upstream's VersionFile.h includes java/JavaMetadata.h
+         for the same reason. Java does not reference Minecraft, so there is no cycle. -->
+    <ProjectReference Include="..\ExtremeLauncher.Java\ExtremeLauncher.Java.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Settings\ExtremeLauncher.Settings.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Forge and NeoForge describe their mods in mods.toml. Pinned: 2.x drops Toml.TryToModel. -->
+    <PackageReference Include="Tomlyn" Version="0.19.0" />
+  </ItemGroup>
+
+</Project>

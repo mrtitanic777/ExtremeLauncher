@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtremeLauncher.ModPlatform.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ExtremeLauncher.ModPlatform\ExtremeLauncher.ModPlatform.csproj" />
+  </ItemGroup>
+
+  <!-- Vectors from a second, independent transcription of the C++; the generator sits beside them. -->
+  <ItemGroup>
+    <Content Include="testdata\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Reuse the Qt suite's fixtures rather than copying them. -->
+  <ItemGroup>
+    <Content Include="..\..\..\tests\testdata\packwiz\*.toml"
+             Link="testdata\packwiz\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

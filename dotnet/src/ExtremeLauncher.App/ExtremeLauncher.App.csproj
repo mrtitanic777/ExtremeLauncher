@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>ExtremeLauncher.App</RootNamespace>
+    <AssemblyName>ExtremeLauncher</AssemblyName>
+
+    <!-- Avalonia draws its own widgets, so one build runs on all three desktops: the whole reason
+         this port exists rather than a Qt maintenance fork. -->
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+    <!-- Ships a font with the app, so the window looks the same on a machine with no system fonts
+         worth speaking of, which is a normal state for a bare Linux container. -->
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.2.3" Condition="'$(Configuration)' == 'Debug'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The built-in instance icons, from upstream's own resource set (GPL-3.0, same project).
+         PNG rather than the scalable SVG set: Avalonia cannot draw an SVG without another
+         dependency, and 27 raster icons is a complete, recognisable set at 239 KB. -->
+    <AvaloniaResource Include="Assets\icons\*.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtremeLauncher.ViewModels\ExtremeLauncher.ViewModels.csproj" />
+    <ProjectReference Include="..\ExtremeLauncher.Launch\ExtremeLauncher.Launch.csproj" />
+  </ItemGroup>
+
+</Project>

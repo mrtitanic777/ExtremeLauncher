@@ -1,0 +1,82 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  Upstream's NewsDialog: articles on the left, the selected one on the right, and a button that
+  collapses the list.
+
+  THE ARTICLE BODY IS NOT IN THIS FILE. Upstream hands the entry's HTML to a QTextBrowser; Avalonia
+  has no such control, so the content arrives as laid-out blocks from NewsHtml and the code-behind
+  builds the runs. See NewsWindow.axaml.cs.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.NewsWindow"
+        x:DataType="vm:NewsWindowViewModel"
+        Title="News"
+        Width="820" Height="560"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="16">
+
+    <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <Button Grid.Column="0"
+                Name="ToggleListButton"
+                Content="{Binding ToggleListLabel}"
+                Command="{Binding ToggleListCommand}"
+                IsVisible="{Binding CanToggleList}" />
+
+        <Button Grid.Column="1"
+                Name="OpenLinkButton"
+                Margin="10,0"
+                HorizontalAlignment="Left"
+                Content="Read the full post"
+                Command="{Binding OpenLinkCommand}"
+                IsEnabled="{Binding CanOpenLink}" />
+
+        <Button Grid.Column="2" Name="CloseButton" Content="Close" IsCancel="True" IsDefault="True" />
+      </Grid>
+    </Border>
+
+    <Grid ColumnDefinitions="Auto,*">
+
+      <!-- Collapsed rather than removed, so toggling it does not reflow the article every time. -->
+      <ListBox Grid.Column="0"
+               Name="ArticleList"
+               Width="240"
+               ItemsSource="{Binding Entries}"
+               SelectedItem="{Binding Selected, Mode=TwoWay}"
+               IsVisible="{Binding IsListVisible}">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Margin="0,2">
+              <TextBlock Text="{Binding Title}" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding Updated, StringFormat='{}{0:d MMMM yyyy}'}"
+                         FontSize="10"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <ScrollViewer Grid.Column="1" Margin="14,0,0,0">
+        <StackPanel Spacing="8">
+          <SelectableTextBlock Text="{Binding Title}"
+                               FontSize="20"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap" />
+
+          <!-- Filled by the code-behind: see the file header. -->
+          <StackPanel Name="ArticleBody" Spacing="6" />
+        </StackPanel>
+      </ScrollViewer>
+
+    </Grid>
+
+  </DockPanel>
+
+</Window>

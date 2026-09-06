@@ -1,0 +1,66 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  Pick a version of a component: upstream's VersionSelectDialog, and the list half of its
+  InstallLoaderDialog. One window for both, because they ask the same question.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.VersionSelectWindow"
+        x:DataType="vm:VersionSelectViewModel"
+        Title="{Binding Title}"
+        Width="480" Height="520"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="12">
+
+    <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0"
+                   VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Text="{Binding Status}" />
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+          <!-- Cancel is the DEFAULT, as in every dialog here: Return must not change an instance's
+               Minecraft version because somebody was scrolling the list. -->
+          <Button Name="CancelButton" Content="Cancel" IsCancel="True" IsDefault="True" />
+          <Button Name="AcceptButton" Content="OK" IsEnabled="{Binding CanAccept}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,8">
+      <TextBox Watermark="Search versions" Text="{Binding SearchText, Mode=TwoWay}" />
+
+      <!-- Off by default: the Minecraft list is over a thousand entries and all but about a hundred
+           are snapshots, which would bury the version almost everybody wants. -->
+      <CheckBox Content="Show snapshots and old versions"
+                IsChecked="{Binding ShowAllVersions, Mode=TwoWay}" />
+    </StackPanel>
+
+    <ListBox ItemsSource="{Binding Versions}"
+             SelectedItem="{Binding Selected, Mode=TwoWay}">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:VersionViewModel">
+          <Grid ColumnDefinitions="*,Auto,Auto" Margin="2">
+            <TextBlock Grid.Column="0" Text="{Binding Version}" VerticalAlignment="Center" />
+
+            <TextBlock Grid.Column="1" Text="recommended"
+                       Margin="8,0" VerticalAlignment="Center"
+                       FontStyle="Italic"
+                       IsVisible="{Binding IsRecommended}" />
+
+            <TextBlock Grid.Column="2" Text="{Binding ReleasedString}"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+</Window>

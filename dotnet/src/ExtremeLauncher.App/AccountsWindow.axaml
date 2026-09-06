@@ -1,0 +1,101 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  The accounts window, standing in for upstream's AccountListPage plus its sign-in dialog. One window
+  rather than two, because the device-code flow has nothing to show that does not belong beside the
+  list: the code appears in place, and the list updates under it when the sign-in lands.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        mc:Ignorable="d"
+        x:Class="ExtremeLauncher.App.AccountsWindow"
+        x:DataType="vm:AccountsViewModel"
+        Title="Accounts"
+        Width="640" Height="460"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="12">
+
+    <!-- The sign-in panel. Visible only while a sign-in is in flight, so the window is not carrying
+         an empty strip the rest of the time. -->
+    <Border DockPanel.Dock="Top"
+            Margin="0,0,0,12" Padding="12"
+            CornerRadius="4"
+            IsVisible="{Binding IsSigningIn}"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Signing in with Microsoft" FontWeight="SemiBold" />
+
+        <!-- THE CODE, big enough to read off the screen while typing it somewhere else. This is the
+             entire point of a device-code flow; a spinner here would be useless. -->
+        <SelectableTextBlock Text="{Binding PendingCode.UserCode}"
+                             FontSize="26" FontFamily="Consolas,Menlo,monospace"
+                             IsVisible="{Binding PendingCode, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+        <SelectableTextBlock Text="{Binding Status}" TextWrapping="Wrap" />
+
+        <Button Content="Cancel" HorizontalAlignment="Left" Command="{Binding CancelSignInCommand}" />
+      </StackPanel>
+    </Border>
+
+    <!-- Adding an offline account. Always available: it needs no network and no client id, and it is
+         the only way to play at all in a build with no Microsoft credentials configured. -->
+    <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
+      <StackPanel Orientation="Horizontal" Spacing="6">
+        <TextBox Width="200"
+                 Watermark="Offline player name"
+                 Text="{Binding OfflineName, Mode=TwoWay}" />
+        <Button Content="Add offline account"
+                Command="{Binding AddOfflineCommand}"
+                IsEnabled="{Binding CanAddOffline}" />
+      </StackPanel>
+    </Border>
+
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+      <Button Content="Sign in with Microsoft"
+              Command="{Binding SignInCommand}"
+              IsEnabled="{Binding CanSignIn}" />
+      <Button Content="Set as default"
+              Command="{Binding SetDefaultCommand}"
+              IsEnabled="{Binding CanSetDefault}" />
+      <Button Content="Remove"
+              Command="{Binding RemoveCommand}"
+              IsEnabled="{Binding CanRemove}" />
+    </StackPanel>
+
+    <!-- Said plainly rather than left as a disabled button with no explanation: a build without a
+         client id cannot offer Microsoft sign-in, and the user has no way to work that out. -->
+    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,8"
+               TextWrapping="Wrap"
+               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+               Text="Microsoft sign-in is unavailable: no client id is configured. See credentials.json."
+               IsVisible="{Binding !CanSignIn}" />
+
+    <!-- A ListBox rather than a DataGrid: the app references no DataGrid package, and four fields
+         per row do not need one. Matches how every other list in this launcher is built. -->
+    <ListBox ItemsSource="{Binding Accounts}"
+             SelectedItem="{Binding Selected, Mode=TwoWay}">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:AccountViewModel">
+          <Grid ColumnDefinitions="*,110,180,Auto" Margin="2">
+            <TextBlock Grid.Column="0" Text="{Binding ProfileName}"
+                       VerticalAlignment="Center" FontWeight="SemiBold" />
+            <TextBlock Grid.Column="1" Text="{Binding TypeLabel}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="2" Text="{Binding StatusLabel}"
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+
+            <!-- The default is shown as a word, not a tick: a disabled checkbox in a row reads as
+                 something you ought to be able to click, and this one is set by the button above. -->
+            <TextBlock Grid.Column="3" Text="default"
+                       VerticalAlignment="Center" Margin="8,0,0,0"
+                       FontStyle="Italic"
+                       IsVisible="{Binding IsDefault}" />
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+</Window>

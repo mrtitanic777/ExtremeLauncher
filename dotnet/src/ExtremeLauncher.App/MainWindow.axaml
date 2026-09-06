@@ -1,0 +1,321 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        xmlns:app="using:ExtremeLauncher.App"
+        x:Class="ExtremeLauncher.App.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding Title}"
+        Width="900" Height="600"
+        MinWidth="560" MinHeight="360">
+
+  <Window.Resources>
+    <app:IconImageConverter x:Key="IconImage" />
+  </Window.Resources>
+
+  <DockPanel>
+
+    <!-- The toolbar. Every button binds its enabled state to the view model rather than being
+         switched on and off by hand, so it cannot disagree with the selection. -->
+    <Border DockPanel.Dock="Top" Padding="8" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+      <StackPanel Orientation="Horizontal" Spacing="6">
+        <!-- IsEnabled bound like every other button here. It was missing, and a plain RelayCommand
+             has a CanExecute that is always true, so Launch stayed live with nothing selected, live
+             for an instance that cannot run, and live during a launch. The command guards itself, so
+             pressing it did nothing at all: the very failure this toolbar has already shipped once.
+             Found by the headless UI tests on their first run. -->
+        <!-- The only button here that does NOT need a selection: the first thing a new user does is
+             press it with an empty list. -->
+        <Button Content="New"
+                Command="{Binding NewInstanceCommand}"
+                IsEnabled="{Binding CanCreateInstance}" />
+
+        <!-- Searching for a pack, rather than importing a file somebody already downloaded. Listed
+             before Import because it is the way most people would rather do it, and the only way
+             that leaves the instance knowing which pack and version it came from. -->
+        <Button Content="Modpacks"
+                Command="{Binding BrowsePacksCommand}"
+                IsEnabled="{Binding CanBrowsePacks}" />
+
+        <!-- The other way somebody gets their first instance, and often the only way they ever make
+             one. Needs no selection, for the same reason New does not. -->
+        <Button Content="Import"
+                Command="{Binding ImportPackCommand}"
+                IsEnabled="{Binding CanImportPack}" />
+
+        <Button Content="Launch"
+                Command="{Binding LaunchSelectedCommand}"
+                IsEnabled="{Binding CanLaunch}" />
+
+        <!-- Stops a running game without opening its window; enabled only while it runs. -->
+        <Button Content="Kill"
+                Command="{Binding KillSelectedCommand}"
+                IsEnabled="{Binding CanKill}" />
+
+        <Button Content="Edit"
+                Command="{Binding EditSelectedCommand}"
+                IsEnabled="{Binding CanOpenEditor}" />
+        <Button Content="Copy"
+                Command="{Binding CopySelectedCommand}"
+                IsEnabled="{Binding CanCopy}" />
+
+        <Button Content="Delete"
+                Command="{Binding DeleteSelectedCommand}"
+                IsEnabled="{Binding CanDelete}" />
+
+        <Button Content="Rename"
+                Command="{Binding RenameSelectedCommand}"
+                IsEnabled="{Binding CanRename}" />
+
+        <Button Content="Group"
+                Command="{Binding ChangeGroupCommand}"
+                IsEnabled="{Binding CanChangeGroup}" />
+
+        <!-- The escape hatch every launcher needs. However complete the UI gets, somebody eventually
+             has to look at a file, and a launcher that cannot show them where its files are makes
+             that a search rather than a click. -->
+        <Button Content="Folders" IsEnabled="{Binding CanOpenFolders}">
+          <Button.Flyout>
+            <MenuFlyout>
+              <MenuItem Header="This instance"
+                        Command="{Binding OpenInstanceFolderCommand}"
+                        IsEnabled="{Binding CanOpenInstanceFolder}" />
+              <MenuItem Header="Desktop shortcut for this instance"
+                        Command="{Binding CreateShortcutCommand}"
+                        IsEnabled="{Binding CanCreateShortcut}" />
+              <Separator />
+              <MenuItem Header="Launcher folder"
+                        Command="{Binding OpenFolderCommand}" CommandParameter="root" />
+              <MenuItem Header="Instances"
+                        Command="{Binding OpenFolderCommand}" CommandParameter="instances" />
+              <MenuItem Header="Logs"
+                        Command="{Binding OpenFolderCommand}" CommandParameter="logs" />
+              <MenuItem Header="Java"
+                        Command="{Binding OpenFolderCommand}" CommandParameter="java" />
+              <MenuItem Header="Icons"
+                        Command="{Binding OpenFolderCommand}" CommandParameter="icons" />
+              <Separator />
+
+              <!-- The support action of last resort: a stale metadata cache produces resolve
+                   failures that look like the launcher being broken, and nothing is lost by
+                   throwing it away. -->
+              <!-- The first thing anybody asking for help is asked for, and until now it lived on
+                   disk and nowhere in the launcher. -->
+              <MenuItem Header="Launcher log"
+                        Command="{Binding ShowLauncherLogCommand}"
+                        IsEnabled="{Binding CanShowLauncherLog}" />
+
+              <MenuItem Header="Clear the metadata cache"
+                        Command="{Binding ClearMetadataCommand}"
+                        IsEnabled="{Binding CanClearMetadata}" />
+            </MenuFlyout>
+          </Button.Flyout>
+        </Button>
+
+        <Button Content="Export"
+                Command="{Binding ExportSelectedCommand}"
+                IsEnabled="{Binding CanExport}" />
+
+        <Button Content="Icon"
+                Command="{Binding ChangeIconCommand}"
+                IsEnabled="{Binding CanChangeIcon}" />
+
+        <!-- Built from what this build actually has: most of these URLs are empty by default, and a
+             menu entry that opens nothing looks like the launcher is broken rather than like the fork
+             has no Discord. -->
+        <Button Content="Help" IsEnabled="{Binding CanOpenLinks}">
+          <Button.Flyout>
+            <MenuFlyout ItemsSource="{Binding Links}">
+              <MenuFlyout.ItemContainerTheme>
+                <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}"
+                              x:DataType="vm:LauncherLink">
+                  <Setter Property="Header" Value="{Binding Label}" />
+                  <Setter Property="Command"
+                          Value="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenLinkCommand}" />
+                  <Setter Property="CommandParameter" Value="{Binding Url}" />
+                </ControlTheme>
+              </MenuFlyout.ItemContainerTheme>
+            </MenuFlyout>
+          </Button.Flyout>
+        </Button>
+
+        <Button Content="About"
+                Command="{Binding ShowAboutCommand}"
+                IsEnabled="{Binding CanShowAbout}" />
+
+        <!-- The headline itself is the button, which is upstream's design: the toolbar carries the
+             newest post's title rather than the word "News". Clicking it opens that post with the
+             article list collapsed; there is nothing else to click, so the whole control is it.
+
+             Hidden entirely, not disabled, when this build has no feed configured. A permanently
+             greyed-out "No news available." is a worse thing to look at than empty space. -->
+        <Button Margin="18,0,0,0"
+                MaxWidth="260"
+                Content="{Binding News.Label}"
+                ToolTip.Tip="{Binding News.Tooltip}"
+                Command="{Binding ShowNewsCommand}"
+                CommandParameter="True"
+                IsVisible="{Binding News.IsAvailable}"
+                IsEnabled="{Binding CanShowNews}" />
+
+        <!-- The defaults every instance inherits. Needs no selection, like New and Import. -->
+        <Button Content="Settings"
+                Command="{Binding OpenSettingsCommand}"
+                IsEnabled="{Binding CanOpenSettings}" />
+
+        <!-- Who is playing, and the way to change it. Deliberately shows the name rather than a
+             generic "Accounts": the single most useful thing this toolbar can tell somebody before
+             they press Launch is which account the game is about to use. -->
+        <Button Content="{Binding CurrentAccountLabel}"
+                Margin="18,0,0,0"
+                Command="{Binding OpenAccountsCommand}"
+                IsEnabled="{Binding CanOpenAccounts}" />
+
+        <TextBox Width="220" Margin="18,0,0,0"
+                 Watermark="Search instances"
+                 Text="{Binding Instances.SearchText, Mode=TwoWay}" />
+
+        <!-- Bound, not decorative: the items come from the view model so the picker cannot show an
+             option the model does not have, or fail to apply the one chosen. -->
+        <ComboBox Width="170"
+                  ItemsSource="{Binding Instances.SortOptions}"
+                  SelectedItem="{Binding Instances.SelectedSortOption, Mode=TwoWay}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:InstanceListViewModel+SortOption">
+              <TextBlock Text="{Binding Label}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </StackPanel>
+    </Border>
+
+    <!-- The launch status bar. Visible only while something is happening or has just failed, so the
+         window is not permanently carrying an empty strip. -->
+    <Border DockPanel.Dock="Bottom" Padding="8"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+      <Border.IsVisible>
+        <MultiBinding Converter="{x:Static BoolConverters.Or}">
+          <Binding Path="Launch.IsBusy" />
+          <Binding Path="HasFailure" />
+        </MultiBinding>
+      </Border.IsVisible>
+
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <TextBlock Text="{Binding Launch.Status}" VerticalAlignment="Center" />
+
+        <ProgressBar Width="220" Minimum="0" Maximum="1"
+                     IsIndeterminate="{Binding HasIndeterminateProgress}"
+                     Value="{Binding Launch.Progress, FallbackValue=0}"
+                     IsVisible="{Binding Launch.IsBusy}"
+                     VerticalAlignment="Center" />
+
+        <Button Content="Cancel"
+                Command="{Binding Launch.CancelCommand}"
+                IsVisible="{Binding Launch.IsBusy}" />
+
+        <TextBlock Text="{Binding Launch.Failure}"
+                   IsVisible="{Binding HasFailure}"
+                   VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+      </StackPanel>
+    </Border>
+
+    <!-- What just happened to a deleted instance, with the way back where the platform offers one.
+         Separate from the launch status bar because it outlives a launch and answers a different
+         question: not "what is happening" but "what did I just do". -->
+    <Border DockPanel.Dock="Bottom" Padding="8"
+            IsVisible="{Binding HasRemovalStatus}"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <TextBlock Text="{Binding Removal.Status}" VerticalAlignment="Center" TextWrapping="Wrap" />
+
+        <Button Content="Undo"
+                Command="{Binding UndoDeleteCommand}"
+                IsVisible="{Binding CanUndoDelete}" />
+      </StackPanel>
+    </Border>
+
+    <!-- The copy's own line. A large modpack takes a while and the copy runs off the UI thread, so
+         without this the window would look idle while several gigabytes moved. -->
+    <Border DockPanel.Dock="Bottom" Padding="8"
+            IsVisible="{Binding HasDuplicationStatus}"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <TextBlock Text="{Binding Duplication.Status}" VerticalAlignment="Center" TextWrapping="Wrap" />
+
+        <ProgressBar Width="160" Minimum="0" Maximum="1"
+                     IsIndeterminate="{Binding HasIndeterminateCopyProgress}"
+                     Value="{Binding Duplication.Progress, FallbackValue=0}"
+                     IsVisible="{Binding Duplication.IsBusy}"
+                     VerticalAlignment="Center" />
+      </StackPanel>
+    </Border>
+
+    <!-- "Nothing here" and "nothing matched" are different things to tell a user, so they are
+         different messages rather than one empty list. -->
+    <TextBlock DockPanel.Dock="Bottom" Margin="12"
+               Text="No instances match your search."
+               IsVisible="{Binding Instances.IsFilteredToNothing}"
+               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+    <ScrollViewer>
+      <ItemsControl ItemsSource="{Binding Instances.Groups}" Margin="8">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:InstanceGroupViewModel">
+            <StackPanel Margin="0,0,0,12">
+
+              <!-- The ungrouped heading has no name, so it shows no header at all rather than an
+                   invented one. Instances the user has not filed just sit at the top. -->
+              <TextBlock Text="{Binding Name}"
+                         IsVisible="{Binding !IsUngrouped}"
+                         FontWeight="SemiBold"
+                         Margin="4,0,0,4" />
+
+              <ItemsControl ItemsSource="{Binding Instances}" IsVisible="{Binding !IsCollapsed}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:InstanceItemViewModel">
+                    <!-- A Button rather than a Border with a click handler: it is focusable, works
+                         from the keyboard and is announced by a screen reader, none of which a bare
+                         panel with a pointer event would be. -->
+                    <Button Width="112" Height="104" Margin="4" Padding="6"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectCommand}"
+                            CommandParameter="{Binding Id}"
+                            Classes.selected="{Binding IsSelected}">
+                      <StackPanel VerticalAlignment="Center">
+                        <!-- The instance's own icon. Every instance has carried an iconKey since the
+                             first wave; until now nothing read one back, so they all looked alike. -->
+                        <Image Width="44" Height="44" Margin="0,0,0,4"
+                               Source="{Binding Icon, Converter={StaticResource IconImage}}" />
+
+                        <TextBlock Text="{Binding Name}"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MaxLines="3" />
+
+                        <!-- An instance the launcher cannot start is still listed, and says so.
+                             Hiding it would look to the user like it had been deleted. -->
+                        <TextBlock Text="unsupported"
+                                   IsVisible="{Binding !IsSupported}"
+                                   TextAlignment="Center"
+                                   FontSize="11"
+                                   Margin="0,4,0,0"
+                                   Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+                      </StackPanel>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+  </DockPanel>
+</Window>

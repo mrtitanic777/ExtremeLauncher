@@ -1,0 +1,28 @@
+<Project>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!--
+      Globalization stays ON: StringUtils.NaturalCompare mirrors Qt's localeAwareCompare, and
+      instance/pack names are user-supplied and frequently non-ASCII. Turning on
+      InvariantGlobalization would silently degrade those comparisons to ordinal.
+    -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!--
+    The C# tree is a port of the Qt/C++ launcher, which is GPL-3.0-only.
+    A port is a derivative work, so this tree stays GPL-3.0-only and keeps
+    the upstream copyright headers on every ported file.
+  -->
+  <PropertyGroup>
+    <Product>Extreme Launcher</Product>
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+  </PropertyGroup>
+
+</Project>
