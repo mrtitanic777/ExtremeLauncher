@@ -28,7 +28,7 @@
 
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
           <Button Name="CloseButton" Content="Close" IsCancel="True" IsDefault="True" />
-          <Button Name="ExportButton" Content="Export…"
+          <Button Name="ExportButton" Content="Export…" Classes="hero"
                   Command="{Binding ExportCommand}"
                   IsEnabled="{Binding CanExport}" />
         </StackPanel>

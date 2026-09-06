@@ -32,7 +32,7 @@
                        IsVisible="{Binding IsBusy}" />
 
           <Button Name="CloseButton" Content="Close" IsCancel="True" IsDefault="True" />
-          <Button Content="Install"
+          <Button Content="Install" Classes="hero"
                   Command="{Binding InstallCommand}"
                   IsEnabled="{Binding CanInstall}" />
         </StackPanel>

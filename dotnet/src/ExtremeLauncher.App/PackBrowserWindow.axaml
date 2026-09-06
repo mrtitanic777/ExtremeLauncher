@@ -33,7 +33,7 @@
           <!-- Cancel is the default, as everywhere else here: a stray Return must not start a
                170 MB download and create an instance. -->
           <Button Name="CancelButton" Content="Cancel" IsCancel="True" IsDefault="True" />
-          <Button Name="InstallButton" Content="Install"
+          <Button Name="InstallButton" Content="Install" Classes="hero"
                   IsEnabled="{Binding CanInstall}" />
         </StackPanel>
       </Grid>

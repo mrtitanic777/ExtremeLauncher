@@ -39,7 +39,7 @@
         <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6">
           <!-- Cancel is the DEFAULT, as everywhere else here. -->
           <Button Name="CancelButton" Content="Cancel" IsCancel="True" IsDefault="True" />
-          <Button Name="AcceptButton" Content="OK" IsEnabled="{Binding CanAccept}" />
+          <Button Name="AcceptButton" Content="OK" Classes="hero" IsEnabled="{Binding CanAccept}" />
         </StackPanel>
       </Grid>
     </Border>

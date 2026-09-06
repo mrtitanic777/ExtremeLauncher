@@ -37,7 +37,7 @@
                    IsVisible="{Binding IsLoading}"
                    VerticalAlignment="Center" />
       <Button Content="Cancel" Name="CancelButton" IsDefault="True" MinWidth="90" />
-      <Button Content="Create" Name="CreateButton" MinWidth="90"
+      <Button Content="Create" Name="CreateButton" Classes="hero" MinWidth="90"
               IsEnabled="{Binding CanCreate}" />
     </StackPanel>
 

@@ -55,7 +55,7 @@
     </Border>
 
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
-      <Button Content="Sign in with Microsoft"
+      <Button Content="Sign in with Microsoft" Classes="hero"
               Command="{Binding SignInCommand}"
               IsEnabled="{Binding CanSignIn}" />
       <Button Content="Set as default"

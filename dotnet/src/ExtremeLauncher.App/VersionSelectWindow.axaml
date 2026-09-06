@@ -29,7 +29,7 @@
           <!-- Cancel is the DEFAULT, as in every dialog here: Return must not change an instance's
                Minecraft version because somebody was scrolling the list. -->
           <Button Name="CancelButton" Content="Cancel" IsCancel="True" IsDefault="True" />
-          <Button Name="AcceptButton" Content="OK" IsEnabled="{Binding CanAccept}" />
+          <Button Name="AcceptButton" Content="OK" Classes="hero" IsEnabled="{Binding CanAccept}" />
         </StackPanel>
       </Grid>
     </Border>
