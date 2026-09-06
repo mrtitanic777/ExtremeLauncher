@@ -12,6 +12,12 @@
     <Style Selector="Window">
       <Setter Property="FontFamily"
               Value="Segoe UI, Inter, -apple-system, Ubuntu, Cantarell, sans-serif" />
+
+      <!-- A real canvas colour. Fluent's default window background is SystemAltHigh, which is pure
+           black in dark and pure white in light, so an empty content area rendered as a black void
+           in dark mode. AppCanvasBrush is our own app-background layer, one step below the card
+           surface, so the instance cards read as raised in both themes. -->
+      <Setter Property="Background" Value="{DynamicResource AppCanvasBrush}" />
     </Style>
 
     <!-- Toolbar and dialog buttons: a touch more room and a softer corner than the stock control. -->
@@ -102,13 +108,30 @@
       <Setter Property="Margin" Value="0,1" />
     </Style>
 
-    <!-- The instance tiles on the main window: a real card, with a hover and a clear selected state.
-         The selected class was referenced by the tile but never defined, so selection was invisible. -->
+    <!-- The instance tiles on the main window: a real raised card, with a hover and a clear selected
+         state. The card is an inner Border we fully control, NOT the Button's own chrome: a Fluent
+         Button paints its own ButtonBackground (a light overlay that is near-white in the dark theme)
+         and does not reliably honour an overridden background, which is why the cards looked right in
+         light and wrong in dark. The Button itself is made chromeless and the opaque Border covers it,
+         so the look is identical in both themes. -->
     <Style Selector="Button.instance-tile">
-      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" />
-      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="Button.instance-tile /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- CardBackgroundFillColorDefault is Fluent's dedicated card surface and is genuinely theme-aware
+         (a light card in light, a dark card in dark), unlike the "Chrome" keys, several of which do
+         not invert and left the cards near-white in the dark theme. -->
+    <Style Selector="Border.tile-card">
+      <Setter Property="Background" Value="{DynamicResource AppCardBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppCardStrokeBrush}" />
       <Setter Property="BorderThickness" Value="2" />
       <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="6" />
       <Setter Property="Transitions">
         <Transitions>
           <BrushTransition Property="Background" Duration="0:0:0.12" />
@@ -117,31 +140,53 @@
       </Setter>
     </Style>
 
-    <Style Selector="Button.instance-tile:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}" />
+    <Style Selector="Button.instance-tile:pointerover Border.tile-card">
+      <Setter Property="Background" Value="{DynamicResource AppCardHoverBrush}" />
     </Style>
 
-    <!-- Selected: an accent border and a faint accent wash, so the current instance is unmistakable. -->
-    <Style Selector="Button.instance-tile.selected">
+    <!-- Selected: the accent border carries it, so the card stays readable in both themes. A filled
+         accent wash would put the dark theme's light card text on pale green, i.e. unreadable. -->
+    <Style Selector="Button.instance-tile.selected Border.tile-card">
       <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
-      <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight3}" />
-    </Style>
-    <Style Selector="Button.instance-tile.selected /template/ ContentPresenter">
-      <Setter Property="Background" Value="Transparent" />
     </Style>
   </Application.Styles>
 
   <Application.Resources>
-    <!-- A grass-green accent, thematic for a Minecraft launcher and distinct from stock Fluent blue.
-         FluentTheme uses SystemAccentColor for controls; the light/dark shades are the hover/pressed
-         and tint steps, set explicitly because Fluent does not derive them on its own. -->
-    <Color x:Key="SystemAccentColor">#3FA34D</Color>
-    <Color x:Key="SystemAccentColorDark1">#379345</Color>
-    <Color x:Key="SystemAccentColorDark2">#2F803B</Color>
-    <Color x:Key="SystemAccentColorDark3">#276B31</Color>
-    <Color x:Key="SystemAccentColorLight1">#57B463</Color>
-    <Color x:Key="SystemAccentColorLight2">#7AC684</Color>
-    <Color x:Key="SystemAccentColorLight3">#A6DCAD</Color>
+    <ResourceDictionary>
+
+      <!-- Our own surface palette, defined per theme so the colours are exact and predictable.
+           Avalonia's Fluent semantic brushes proved unreliable across themes (some "Chrome" keys do
+           not invert; SolidBackgroundFillColorBase is white in the dark theme), which is what left the
+           cards near-white and, once, the whole canvas white. These are the layers, darkest to
+           lightest in dark / lightest to "white card" in light: canvas < toolbar < card < card hover. -->
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="AppCanvasBrush" Color="#ECECEC" />
+          <SolidColorBrush x:Key="AppToolbarBrush" Color="#F6F6F6" />
+          <SolidColorBrush x:Key="AppCardBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="AppCardHoverBrush" Color="#F2F2F2" />
+          <SolidColorBrush x:Key="AppCardStrokeBrush" Color="#DCDCDC" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="AppCanvasBrush" Color="#1E1E1E" />
+          <SolidColorBrush x:Key="AppToolbarBrush" Color="#262626" />
+          <SolidColorBrush x:Key="AppCardBrush" Color="#2D2D2D" />
+          <SolidColorBrush x:Key="AppCardHoverBrush" Color="#383838" />
+          <SolidColorBrush x:Key="AppCardStrokeBrush" Color="#3C3C3C" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+
+      <!-- A grass-green accent, thematic for a Minecraft launcher and distinct from stock Fluent blue.
+           FluentTheme uses SystemAccentColor for controls; the light/dark shades are the hover/pressed
+           and tint steps, set explicitly because Fluent does not derive them on its own. -->
+      <Color x:Key="SystemAccentColor">#3FA34D</Color>
+      <Color x:Key="SystemAccentColorDark1">#379345</Color>
+      <Color x:Key="SystemAccentColorDark2">#2F803B</Color>
+      <Color x:Key="SystemAccentColorDark3">#276B31</Color>
+      <Color x:Key="SystemAccentColorLight1">#57B463</Color>
+      <Color x:Key="SystemAccentColorLight2">#7AC684</Color>
+      <Color x:Key="SystemAccentColorLight3">#A6DCAD</Color>
+    </ResourceDictionary>
   </Application.Resources>
 
 </Application>
