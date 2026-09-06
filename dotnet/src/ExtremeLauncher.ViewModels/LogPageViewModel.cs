@@ -55,7 +55,18 @@ public sealed partial class LogPageViewModel : ObservableObject, IInstancePage
         _uploader = uploader;
         _prompts = prompts;
 
-        _launch.LogLines.CollectionChanged += (_, _) => OnPropertyChanged(nameof(IsEmpty));
+        _launch.LogLines.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(IsEmpty));
+
+            // Matches shift as lines stream in and as the 5,000-line cap trims from the front.
+            if (HasSearch)
+            {
+                OnPropertyChanged(nameof(MatchSummary));
+                FindNextCommand.NotifyCanExecuteChanged();
+                FindPreviousCommand.NotifyCanExecuteChanged();
+            }
+        };
         _launch.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(LaunchCoordinator.IsBusy) or nameof(LaunchCoordinator.Status))
@@ -145,5 +156,117 @@ public sealed partial class LogPageViewModel : ObservableObject, IInstancePage
         CopyStatus = await LogUpload
             .RunAsync(ToPlainText(), "this launch's log", _uploader, _prompts, _clipboard)
             .ConfigureAwait(true);
+    }
+
+    // ================================================================== find
+
+    /// <summary>What to look for. Searched literally, case-insensitively, including any spaces.</summary>
+    [ObservableProperty]
+    private string _searchText = string.Empty;
+
+    /// <summary>The line the last Find landed on, or -1. The view scrolls to and highlights it.</summary>
+    [ObservableProperty]
+    private int _currentMatchIndex = -1;
+
+    partial void OnSearchTextChanged(string value)
+    {
+        // A new query starts the walk over; the next Find lands on the first match from the top.
+        CurrentMatchIndex = -1;
+
+        OnPropertyChanged(nameof(HasSearch));
+        OnPropertyChanged(nameof(MatchSummary));
+        FindNextCommand.NotifyCanExecuteChanged();
+        FindPreviousCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>Whether a search is entered at all.</summary>
+    public bool HasSearch => SearchText.Length != 0;
+
+    /// <summary>Whether Find has anything to do -- a query, and lines to look through.</summary>
+    public bool CanFind => HasSearch && Lines.Count != 0;
+
+    private List<int> MatchIndices()
+    {
+        var matches = new List<int>();
+
+        if (SearchText.Length == 0)
+        {
+            return matches;
+        }
+
+        for (var i = 0; i < Lines.Count; i++)
+        {
+            if (Lines[i].Text.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+            {
+                matches.Add(i);
+            }
+        }
+
+        return matches;
+    }
+
+    /// <summary>"3 of 12", "No matches", or empty when nothing is being searched for.</summary>
+    public string MatchSummary
+    {
+        get
+        {
+            if (!HasSearch)
+            {
+                return string.Empty;
+            }
+
+            var matches = MatchIndices();
+
+            if (matches.Count == 0)
+            {
+                return "No matches";
+            }
+
+            var position = matches.IndexOf(CurrentMatchIndex);
+
+            return position >= 0
+                ? $"{position + 1} of {matches.Count}"
+                : $"{matches.Count} matches";
+        }
+    }
+
+    /// <summary>Moves to the next matching line, wrapping to the top after the last.</summary>
+    [RelayCommand(CanExecute = nameof(CanFind))]
+    public void FindNext()
+    {
+        var matches = MatchIndices();
+
+        if (matches.Count == 0)
+        {
+            CurrentMatchIndex = -1;
+        }
+        else
+        {
+            // The first match after the current line; from -1 that is the very first, and past the last
+            // it wraps back to the top.
+            CurrentMatchIndex = matches.Where(i => i > CurrentMatchIndex).DefaultIfEmpty(matches[0]).First();
+        }
+
+        OnPropertyChanged(nameof(MatchSummary));
+    }
+
+    /// <summary>Moves to the previous matching line, wrapping to the bottom before the first.</summary>
+    [RelayCommand(CanExecute = nameof(CanFind))]
+    public void FindPrevious()
+    {
+        var matches = MatchIndices();
+
+        if (matches.Count == 0)
+        {
+            CurrentMatchIndex = -1;
+        }
+        else
+        {
+            // The last match before the current line; from -1 or the first, it wraps to the bottom.
+            var reference = CurrentMatchIndex < 0 ? int.MaxValue : CurrentMatchIndex;
+            CurrentMatchIndex = matches.Where(i => i < reference).DefaultIfEmpty(matches[^1]).Last();
+        }
+
+        OnPropertyChanged(nameof(MatchSummary));
     }
 }

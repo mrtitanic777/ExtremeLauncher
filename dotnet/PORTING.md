@@ -74,7 +74,7 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**368 of 758 files. 3,258 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**368 of 758 files. 3,264 passing, 15 skipped.** (12 source projects, 12 test projects.)
 
 > ⚠️ **Unverified: the INI writer's byte-compatibility.** `INIFile` is a wrapper over `QSettings` with
 > `IniFormat`, so the on-disk format is *QSettings' particular INI dialect* — and every existing
@@ -6151,6 +6151,37 @@ is bundled, because that distinction is invisible from the format's name and cha
 - **Only Modrinth and CurseForge export.** Technic, FTB and ATLauncher are parsed on the import side
   and have no export.
 - **The export window has never been seen by a human**, like every window in this port.
+
+## Wave 73 — find in the launch log
+
+`LogPage` in upstream has a search box; the port's live log could only be copied whole. A modded
+launch prints tens of thousands of lines, and the reason someone is on this page is usually to find one
+of them. So the log page can now be searched.
+
+### Next and previous, wrapping, over the live list
+
+`SearchText` drives a case-insensitive literal search over the log lines. `FindNext` moves to the next
+matching line and wraps to the top after the last; `FindPrevious` walks back and wraps to the bottom
+before the first. `CurrentMatchIndex` is the line the view scrolls to and highlights, and `MatchSummary`
+reads "3 of 12", or "No matches", or nothing when the box is empty. Matches are recomputed against the
+live collection each Find rather than cached, so a search stays correct as lines stream in and as the
+5,000-line cap trims from the front -- the summary is re-announced on both.
+
+### Tested
+
+Six tests: nothing is findable without a query; Find next walks the matches and wraps; Find previous
+wraps to the bottom; the search is case-insensitive; a query that matches nothing says so; and changing
+the query starts the walk over from the top. The wrap-around is mutation-verified -- stop Find next
+wrapping and the walk test fails at the line where it should have returned to the first match.
+
+### Still not proved
+
+- **The scroll-to and highlight are app glue, not tested.** The view-model computes and exposes the
+  match line index; the log view is a plain `ItemsControl`, so bringing that line into view and tinting
+  it is code-behind a headless test cannot exercise. The search box, the Find buttons and the summary
+  are wired; the visual jump to the match is the untested part.
+- **Per-level colouring** (wave 72's follow-up) is still not surfaced -- it needs the level carried to
+  `LaunchLogLine`, a wide change through the shared progress sink, deferred as poor ROI while headless.
 
 ## Wave 72 — the launcher reads the game's log levels
 

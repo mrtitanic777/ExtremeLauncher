@@ -408,6 +408,20 @@
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             </StackPanel>
 
+            <!-- Find in the log. Enter finds the next match; the summary says where you are. -->
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,6">
+              <TextBox Width="220" Watermark="Find in log"
+                       Text="{Binding SearchText}">
+                <TextBox.KeyBindings>
+                  <KeyBinding Gesture="Enter" Command="{Binding FindNextCommand}" />
+                </TextBox.KeyBindings>
+              </TextBox>
+              <Button Content="Previous" Command="{Binding FindPreviousCommand}" IsEnabled="{Binding CanFind}" />
+              <Button Content="Next" Command="{Binding FindNextCommand}" IsEnabled="{Binding CanFind}" />
+              <TextBlock Text="{Binding MatchSummary}" VerticalAlignment="Center"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </StackPanel>
+
             <TextBlock DockPanel.Dock="Top" Margin="0,0,0,6"
                        Text="Nothing here yet. Press Launch to start this instance."
                        IsVisible="{Binding IsEmpty}"
