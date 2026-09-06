@@ -214,9 +214,13 @@ public sealed class InstanceRemovalTests : IDisposable
      *
      * Provoked for real by holding a file open, so the trash genuinely cannot move the directory.
      */
-    [Fact]
+    [SkippableFact]
     public async Task PermanentDeletionIsAskedSeparatelyAndOnlyAfterTrashingFails()
     {
+        // Holding a file open only blocks a move on Windows; Unix trashes an open file happily, so the
+        // "trash failed, ask about permanent deletion" path cannot be provoked this way there.
+        Skip.IfNot(OperatingSystem.IsWindows(), "Open files only block removal on Windows.");
+
         var path = MakeInstance("Stuck");
         var list = NewList();
 
@@ -241,9 +245,12 @@ public sealed class InstanceRemovalTests : IDisposable
     }
 
     /// <summary>Both routes failing says why, because "delete failed" invites the same second click.</summary>
-    [Fact]
+    [SkippableFact]
     public async Task FailingBothWaysExplainsItself()
     {
+        // Same Windows-only provocation: an open file blocks removal only there.
+        Skip.IfNot(OperatingSystem.IsWindows(), "Open files only block removal on Windows.");
+
         var path = MakeInstance("Stuck");
         var list = NewList();
 
