@@ -25,12 +25,12 @@ Self-contained builds — no .NET runtime to install, just download, unzip and r
 
 | Platform | Download |
 |----------|----------|
-| Windows (x64) | [`…-win-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest) |
-| Linux (x64) | [`…-linux-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest) |
-| macOS (Apple Silicon) | [`…-osx-arm64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest) |
-| macOS (Intel) | [`…-osx-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest) |
+| Windows (x64) | [`…-win-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1-win-x64.zip) |
+| Linux (x64) | [`…-linux-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1-linux-x64.zip) |
+| macOS (Apple Silicon) | [`…-osx-arm64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1-osx-arm64.zip) |
+| macOS (Intel) | [`…-osx-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1-osx-x64.zip) |
 
-`checksums.txt` on the release page holds the SHA-256 of each archive.
+The [`checksums.txt`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/checksums.txt) on the release page holds the SHA-256 of each archive.
 
 > [!IMPORTANT]
 > This first release has real limitations: **Microsoft sign-in is disabled** unless you supply a
