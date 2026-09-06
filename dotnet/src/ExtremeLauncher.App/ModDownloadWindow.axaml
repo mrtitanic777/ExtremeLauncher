@@ -36,7 +36,7 @@
 
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
           <Button Name="CancelButton" Content="Cancel" IsCancel="True" IsDefault="True" />
-          <Button Name="InstallButton" Content="Install"
+          <Button Name="InstallButton" Content="Install" Classes="hero"
                   IsEnabled="{Binding CanInstall}" />
         </StackPanel>
       </Grid>

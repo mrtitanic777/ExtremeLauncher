@@ -28,7 +28,7 @@
 
         <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6">
           <Button Name="CloseButton" Content="Close" IsCancel="True" IsDefault="True" />
-          <Button Content="{Binding ApplyLabel}"
+          <Button Content="{Binding ApplyLabel}" Classes="hero"
                   Command="{Binding ApplyCommand}"
                   IsEnabled="{Binding CanApply}" />
         </StackPanel>

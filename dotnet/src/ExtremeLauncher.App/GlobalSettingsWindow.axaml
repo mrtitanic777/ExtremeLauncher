@@ -39,7 +39,7 @@
                   IsEnabled="{Binding CanInstallJava}" />
           <Button Name="RevertButton" Content="Revert" Command="{Binding RevertCommand}" />
           <Button Name="CancelButton" Content="Cancel" IsCancel="True" IsDefault="True" />
-          <Button Name="SaveButton" Content="Save" />
+          <Button Name="SaveButton" Content="Save" Classes="hero" />
         </StackPanel>
       </Grid>
     </Border>
