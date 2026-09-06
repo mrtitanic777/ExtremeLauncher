@@ -47,6 +47,20 @@
       <Setter Property="Margin" Value="0,4,0,6" />
     </Style>
 
+    <!-- The instance window's page navigation reads as a modern sidebar: no box around it, and each
+         page is a rounded row that fills the width, so the accent selection lands as a pill rather
+         than a hard-edged bar butting against the window frame. -->
+    <Style Selector="ListBox.page-nav">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.page-nav ListBoxItem">
+      <Setter Property="Padding" Value="10,8" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Margin" Value="0,1" />
+    </Style>
+
     <!-- The instance tiles on the main window: a real card, with a hover and a clear selected state.
          The selected class was referenced by the tile but never defined, so selection was invisible. -->
     <Style Selector="Button.instance-tile">
