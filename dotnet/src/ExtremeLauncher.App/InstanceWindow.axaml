@@ -22,10 +22,13 @@
 
     <!-- Launch, Kill and Close, as upstream's InstanceWindow carries them. This window IS the launch
          window: pressing Launch here jumps to the log page the moment the game starts. -->
-    <Border DockPanel.Dock="Bottom" Padding="8"
+    <Border DockPanel.Dock="Bottom" Padding="10,8"
+            BorderThickness="0,1,0,0"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
             Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
       <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
         <Button Content="Launch"
+                Classes="hero"
                 Command="{Binding LaunchCommand}"
                 IsEnabled="{Binding CanLaunch}" />
         <Button Content="Kill"
@@ -36,7 +39,7 @@
 
     <!-- The page list. Bound to the collection rather than hardcoded, so a page that is not built for
          this instance simply is not there. -->
-    <ListBox DockPanel.Dock="Left" Width="150" Margin="8"
+    <ListBox DockPanel.Dock="Left" Width="150" Margin="8" Classes="page-nav"
              ItemsSource="{Binding Pages}"
              SelectedItem="{Binding SelectedPage, Mode=TwoWay}">
       <ListBox.ItemTemplate>
@@ -96,7 +99,7 @@
               </StackPanel>
             </Border>
 
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+            <WrapPanel DockPanel.Dock="Top" Classes="toolbar" Margin="0,0,0,8">
               <!-- Every button binds its enabled state to the view model. Upstream re-derives these by
                    hand in updateButtons(), from six call sites. -->
               <Button Content="Remove"
@@ -149,7 +152,7 @@
               <Button Content="Libraries folder"
                       Command="{Binding OpenLibrariesFolderCommand}"
                       IsEnabled="{Binding CanOpenLibrariesFolder}" />
-            </StackPanel>
+            </WrapPanel>
 
             <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
                        Text="This instance has problems — see the rows marked below."
@@ -245,7 +248,7 @@
         <DataTemplate DataType="vm:ModsPageViewModel">
           <DockPanel>
 
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+            <WrapPanel DockPanel.Dock="Top" Classes="toolbar" Margin="0,0,0,8">
               <!-- One button whose label says what will HAPPEN, rather than two, or one naming the
                    current state. "Enabled" is ambiguous about which way it goes. -->
               <Button Content="{Binding ToggleLabel}"
@@ -279,7 +282,7 @@
                       Command="{Binding CheckUpdatesCommand}"
                       IsEnabled="{Binding CanCheckUpdates}"
                       IsVisible="{Binding CanCheckUpdates}" />
-            </StackPanel>
+            </WrapPanel>
 
             <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
                        Text="{Binding Status}"
@@ -315,7 +318,7 @@
         <DataTemplate DataType="vm:WorldsPageViewModel">
           <DockPanel>
 
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+            <WrapPanel DockPanel.Dock="Top" Classes="toolbar" Margin="0,0,0,8">
               <!-- Import a world zip (or .mcworld). Named after the world inside, not the file. -->
               <Button Content="Add"
                       Command="{Binding AddCommand}"
@@ -357,7 +360,7 @@
               <Button Content="View folder"
                       Command="{Binding OpenFolderCommand}"
                       IsEnabled="{Binding CanOpenFolder}" />
-            </StackPanel>
+            </WrapPanel>
 
             <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
                        Text="{Binding Status}"
@@ -447,7 +450,7 @@
         <DataTemplate DataType="vm:OtherLogsPageViewModel">
           <DockPanel>
 
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+            <WrapPanel DockPanel.Dock="Top" Classes="toolbar" Margin="0,0,0,8">
               <ComboBox Width="280"
                         ItemsSource="{Binding Files}"
                         SelectedItem="{Binding Selected}"
@@ -476,7 +479,7 @@
                       ToolTip.Tip="Upload this log to the paste service set in the launcher's settings." />
               <TextBlock Text="{Binding CopyStatus}" VerticalAlignment="Center"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-            </StackPanel>
+            </WrapPanel>
 
             <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
                        Text="This instance has no log files yet."
@@ -497,7 +500,7 @@
         <DataTemplate DataType="vm:ScreenshotsPageViewModel">
           <DockPanel>
 
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+            <WrapPanel DockPanel.Dock="Top" Classes="toolbar" Margin="0,0,0,8">
               <Button Content="Rename"
                       Command="{Binding RenameSelectedCommand}"
                       IsEnabled="{Binding HasSelection}" />
@@ -523,7 +526,7 @@
               <Button Content="View folder"
                       Command="{Binding OpenFolderCommand}"
                       IsEnabled="{Binding CanOpenFolder}" />
-            </StackPanel>
+            </WrapPanel>
 
             <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
                        Text="{Binding Status}"
@@ -554,7 +557,7 @@
         <DataTemplate DataType="vm:ServersPageViewModel">
           <DockPanel>
 
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+            <WrapPanel DockPanel.Dock="Top" Classes="toolbar" Margin="0,0,0,8">
               <!-- Launches the instance straight into this server, through the window's own coordinator. -->
               <Button Content="Join"
                       Command="{Binding JoinSelectedCommand}"
@@ -567,8 +570,8 @@
 
               <!-- The game rewrites this file when it exits, so re-reading it is a normal thing to
                    want rather than a debugging aid. -->
-              <Button Content="Refresh" Command="{Binding RefreshCommand}" Margin="12,0,0,0" />
-            </StackPanel>
+              <Button Content="Refresh" Command="{Binding RefreshCommand}" Margin="12,2,6,2" />
+            </WrapPanel>
 
             <!-- Why the page will not be edited, when it will not: the game is running, or the file
                  could not be read. The second is the dangerous one - an empty list that is empty
