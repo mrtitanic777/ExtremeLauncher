@@ -47,6 +47,41 @@
       <Setter Property="Margin" Value="0,4,0,6" />
     </Style>
 
+    <!-- A quiet filled pill for the one-word qualifiers that sit beside a name (required, dependency,
+         customised on the version page): metadata should read as a chip, not as more of the sentence. -->
+    <Style Selector="Border.badge">
+      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="6,1" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.badge > TextBlock">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+    </Style>
+
+    <!-- Form field captions (settings, server editor): a consistent muted label with a little air
+         under it, instead of an ad-hoc 11px TextBlock jammed against its input. -->
+    <Style Selector="TextBlock.field-label">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+      <Setter Property="Margin" Value="0,0,0,3" />
+    </Style>
+
+    <!-- The settings groups' own tick box doubles as the section heading, so it carries a heading's
+         weight rather than looking like just another option. -->
+    <Style Selector="CheckBox.group-title">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <!-- A denser list for scanning: the component list is read top-to-bottom, so it should not waste
+         a Fluent row's full height on each line. -->
+    <Style Selector="ListBox.compact ListBoxItem">
+      <Setter Property="Padding" Value="8,4" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+
     <!-- The instance window's page navigation reads as a modern sidebar: no box around it, and each
          page is a rounded row that fills the width, so the accent selection lands as a pill rather
          than a hard-edged bar butting against the window frame. -->
