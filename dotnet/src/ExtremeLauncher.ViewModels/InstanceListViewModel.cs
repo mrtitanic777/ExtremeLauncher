@@ -145,6 +145,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>Whether the list is empty because of the search rather than because it is empty.</summary>
     public bool IsFilteredToNothing => _all.Count != 0 && Groups.Count == 0;
 
+    /// <summary>Whether there are no instances at all — a fresh install, not a search that missed.
+    /// Drives the welcome placeholder, so a new user does not stare at an empty void.</summary>
+    public bool IsEmpty => _all.Count == 0;
+
     /// <summary>The list this was loaded from, so it can be re-read after something changes it.</summary>
     public InstanceList? Source { get; private set; }
 
@@ -249,6 +253,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(IsFilteredToNothing));
+        OnPropertyChanged(nameof(IsEmpty));
     }
 
     /// <remarks>

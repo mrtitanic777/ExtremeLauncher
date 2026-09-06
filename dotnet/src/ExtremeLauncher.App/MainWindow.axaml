@@ -16,7 +16,10 @@
 
     <!-- The toolbar. Every button binds its enabled state to the view model rather than being
          switched on and off by hand, so it cannot disagree with the selection. -->
-    <Border DockPanel.Dock="Top" Padding="8" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+    <Border DockPanel.Dock="Top" Padding="8"
+            BorderThickness="0,0,0,1"
+            BorderBrush="{DynamicResource AppCardStrokeBrush}"
+            Background="{DynamicResource AppToolbarBrush}">
       <WrapPanel Classes="toolbar" Orientation="Horizontal">
         <!-- IsEnabled bound like every other button here. It was missing, and a plain RelayCommand
              has a CanExecute that is always true, so Launch stayed live with nothing selected, live
@@ -253,7 +256,21 @@
                IsVisible="{Binding Instances.IsFilteredToNothing}"
                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
 
-    <ScrollViewer>
+    <Grid>
+
+      <!-- A fresh install has no instances. Rather than a bare canvas that reads as broken, say what
+           this window is for and where to start. Hidden the moment there is anything to show. -->
+      <StackPanel IsVisible="{Binding Instances.IsEmpty}"
+                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                  MaxWidth="420" Spacing="6">
+        <TextBlock Text="🧊" FontSize="44" HorizontalAlignment="Center" />
+        <TextBlock Text="No instances yet" Classes="h2" HorizontalAlignment="Center" />
+        <TextBlock TextAlignment="Center" TextWrapping="Wrap"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   Text="Press New to create one from any Minecraft version, Modpacks to browse and install a pack, or Import to add a pack you already have." />
+      </StackPanel>
+
+      <ScrollViewer>
       <ItemsControl ItemsSource="{Binding Instances.Groups}" Margin="8">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:InstanceGroupViewModel">
@@ -278,11 +295,12 @@
                     <!-- A Button rather than a Border with a click handler: it is focusable, works
                          from the keyboard and is announced by a screen reader, none of which a bare
                          panel with a pointer event would be. -->
-                    <Button Width="116" Height="108" Margin="5" Padding="6"
+                    <Button Width="116" Height="108" Margin="5"
                             Classes="instance-tile"
                             Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectCommand}"
                             CommandParameter="{Binding Id}"
                             Classes.selected="{Binding IsSelected}">
+                      <Border Classes="tile-card">
                       <StackPanel VerticalAlignment="Center">
                         <!-- The instance's own icon. Every instance has carried an iconKey since the
                              first wave; until now nothing read one back, so they all looked alike. -->
@@ -303,6 +321,7 @@
                                    Margin="0,4,0,0"
                                    Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" />
                       </StackPanel>
+                      </Border>
                     </Button>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -311,7 +330,9 @@
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
-    </ScrollViewer>
+      </ScrollViewer>
+
+    </Grid>
 
   </DockPanel>
 </Window>
