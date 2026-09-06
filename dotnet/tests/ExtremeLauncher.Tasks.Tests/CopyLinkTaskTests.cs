@@ -43,13 +43,24 @@ public sealed class CopyLinkTaskTests : IDisposable
 
     private readonly string _temp = Path.Combine(Path.GetTempPath(), "el-copylink-" + Guid.NewGuid().ToString("N"));
 
-    public CopyLinkTaskTests() => Directory.CreateDirectory(_temp);
+    // Hard links cannot cross volumes, and the temp folder is not always on the same one as the build
+    // output the fixture sits in -- on CI the checkout is on D: while %TEMP% is on C:. So hard-link
+    // tests use a scratch dir NEXT TO the fixture, guaranteed to share its volume.
+    private readonly string _sameVolumeTemp =
+        Path.Combine(AppContext.BaseDirectory, "el-copylink-" + Guid.NewGuid().ToString("N"));
+
+    public CopyLinkTaskTests()
+    {
+        Directory.CreateDirectory(_temp);
+        Directory.CreateDirectory(_sameVolumeTemp);
+    }
 
     public void Dispose()
     {
         try
         {
             Directory.Delete(_temp, recursive: true);
+            Directory.Delete(_sameVolumeTemp, recursive: true);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
@@ -297,7 +308,8 @@ public sealed class CopyLinkTaskTests : IDisposable
     [Fact]
     public async Task HardLinkCreatesRealLinks()
     {
-        var target = Target("hardlinks");
+        // Same volume as the fixture, because hard links cannot span volumes.
+        var target = Path.Combine(_sameVolumeTemp, "hardlinks");
         var task = new CreateLinkTask(Fixture, target).UseHardLinks(true);
 
         Assert.True(await task.RunAsync());
