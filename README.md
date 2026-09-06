@@ -17,6 +17,28 @@ The rest of this document describes the original Qt/C++ launcher.
 - All downloads and instructions for Extreme Launcher can be found on our [Website](https://extremelauncher.net/download/).
 - Last build status can be found in the [GitHub Actions](https://github.com/ExtremeLauncherTeam/ExtremeLauncher/actions) tab (this also includes the pull requests status).
 
+### .NET port — prebuilt downloads
+
+The C#/.NET 9 + Avalonia port now has its **first release**: **[Extreme Launcher .NET port — 5.1](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest)**.
+
+Self-contained builds — no .NET runtime to install, just download, unzip and run:
+
+| Platform | Download |
+|----------|----------|
+| Windows (x64) | [`…-win-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest) |
+| Linux (x64) | [`…-linux-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest) |
+| macOS (Apple Silicon) | [`…-osx-arm64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest) |
+| macOS (Intel) | [`…-osx-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest) |
+
+`checksums.txt` on the release page holds the SHA-256 of each archive.
+
+> [!IMPORTANT]
+> This first release has real limitations: **Microsoft sign-in is disabled** unless you supply a
+> credential, the macOS builds are **unsigned** (clear quarantine with
+> `xattr -dr com.apple.quarantine ExtremeLauncher`), and the GUI has not yet had extensive human
+> testing. See the [release notes](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest)
+> and [`dotnet/README.md`](dotnet/README.md) for the full story and how to enable sign-in.
+
 ### Development Builds
 
 Please understand that these builds are not intended for most users. There may be bugs, and other instabilities. You have been warned.
