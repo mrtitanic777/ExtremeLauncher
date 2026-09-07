@@ -74,7 +74,20 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**380 of 758 files. 3,402 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**381 of 758 files. 3,410 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **CurseForge modpack index (wave 88).** Ported `flame/FlamePackIndex.cpp` to
+> `ModPlatform/FlamePackIndex.cs` — the CurseForge *modpack* listing parser, distinct from the already
+> ported `FlameModIndex` (individual mods) and `FlamePackManifest` (a pack's manifest.json). It fills
+> the shared `IndexedPack`/`IndexedVersion`, like the other providers' parsers. `LoadIndexedPack` reads
+> a search hit and rejects any pack whose default file (mainFileId) is missing or targets no Minecraft
+> version — upstream will not list something that cannot be installed; the logo filename is built from
+> the slug plus the logo URL's extension. `LoadIndexedInfo` reads the links (website onto the pack,
+> issues/source/wiki into ExtraData, each trailing slash trimmed). `LoadIndexedPackVersions` reads the
+> file list newest-first by file id, splitting each file's gameVersions into Minecraft versions (the
+> dotted ones) and loader flags, and dropping files with no download URL (third-party distribution off)
+> or no Minecraft version. 8 tests over the listing, logo-name derivation, link trimming, the two
+> rejection paths, and version sorting/filtering.
 
 > **JVM argument validation (wave 87).** Ported the one piece of logic in `JavaCommon.cpp` —
 > `checkJVMArgs` — to `Java/JavaArguments.cs`; the rest of that file is dialog boxes and a Qt task. The
