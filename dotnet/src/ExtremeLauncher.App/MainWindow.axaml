@@ -45,6 +45,8 @@
                 Command="{Binding ImportPackCommand}"
                 IsEnabled="{Binding CanImportPack}" />
 
+        <Border Classes="tool-sep" />
+
         <!-- The hero action, accent-filled: the one button people open the launcher to press. -->
         <Button Content="Launch"
                 Classes="hero"
@@ -75,6 +77,8 @@
             </MenuFlyout>
           </Button.Flyout>
         </Button>
+
+        <Border Classes="tool-sep" />
 
         <!-- The escape hatch every launcher needs. However complete the UI gets, somebody eventually
              has to look at a file, and a launcher that cannot show them where its files are makes

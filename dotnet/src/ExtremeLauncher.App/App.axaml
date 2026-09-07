@@ -20,10 +20,15 @@
       <Setter Property="Background" Value="{DynamicResource AppCanvasBrush}" />
     </Style>
 
-    <!-- Toolbar and dialog buttons: a touch more room and a softer corner than the stock control. -->
+    <!-- Toolbar and dialog buttons: a touch more room and a softer corner than the stock control, and
+         a real 1px edge (its colour comes from the ButtonBorderBrush overrides above) so a button
+         reads as a button on either theme. -->
     <Style Selector="Button">
-      <Setter Property="Padding" Value="12,6" />
+      <Setter Property="Padding" Value="13,7" />
+      <Setter Property="MinHeight" Value="34" />
       <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
 
     <!-- The hero action (Launch): filled with the accent so the one button people came to press reads
@@ -44,6 +49,14 @@
     <!-- The main toolbar wraps instead of clipping off the window edge, with even gaps between items. -->
     <Style Selector="WrapPanel.toolbar > Button, WrapPanel.toolbar > TextBox, WrapPanel.toolbar > ComboBox">
       <Setter Property="Margin" Value="0,2,6,2" />
+    </Style>
+
+    <!-- A hairline between toolbar groups, so a dozen buttons read as a few labelled clusters rather
+         than one undifferentiated wall. -->
+    <Style Selector="Border.tool-sep">
+      <Setter Property="Width" Value="1" />
+      <Setter Property="Margin" Value="4,6" />
+      <Setter Property="Background" Value="{DynamicResource AppCardStrokeBrush}" />
     </Style>
 
     <!-- Section headings used across the pages (group names, "How", "Copy", etc.). -->
@@ -166,6 +179,21 @@
           <SolidColorBrush x:Key="AppCardBrush" Color="#FFFFFF" />
           <SolidColorBrush x:Key="AppCardHoverBrush" Color="#F2F2F2" />
           <SolidColorBrush x:Key="AppCardStrokeBrush" Color="#DCDCDC" />
+
+          <!-- Buttons, overriding Fluent's own keys so every button in the app reads as a real button:
+               a defined surface, a visible edge and a clear hover, instead of a muddy grey blob. -->
+          <SolidColorBrush x:Key="ButtonBackground" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#F4F4F4" />
+          <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#E8E8E8" />
+          <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#EDEDED" />
+          <SolidColorBrush x:Key="ButtonBorderBrush" Color="#CFCFCF" />
+          <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#BCBCBC" />
+          <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#C4C4C4" />
+          <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="#E2E2E2" />
+          <SolidColorBrush x:Key="ButtonForeground" Color="#1A1A1A" />
+          <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#000000" />
+          <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#333333" />
+          <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#ABABAB" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="AppCanvasBrush" Color="#1E1E1E" />
@@ -173,6 +201,19 @@
           <SolidColorBrush x:Key="AppCardBrush" Color="#2D2D2D" />
           <SolidColorBrush x:Key="AppCardHoverBrush" Color="#383838" />
           <SolidColorBrush x:Key="AppCardStrokeBrush" Color="#3C3C3C" />
+
+          <SolidColorBrush x:Key="ButtonBackground" Color="#343434" />
+          <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#3F3F3F" />
+          <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#2C2C2C" />
+          <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#282828" />
+          <SolidColorBrush x:Key="ButtonBorderBrush" Color="#4C4C4C" />
+          <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#5C5C5C" />
+          <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#3C3C3C" />
+          <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="#333333" />
+          <SolidColorBrush x:Key="ButtonForeground" Color="#ECECEC" />
+          <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#D8D8D8" />
+          <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#6E6E6E" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
 
