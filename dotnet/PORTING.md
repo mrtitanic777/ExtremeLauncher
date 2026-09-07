@@ -74,7 +74,21 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**377 of 758 files. 3,351 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**378 of 758 files. 3,376 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **ATLauncher install decision logic (wave 85).** The ATLauncher install task is ~1,075 lines of Qt
+> download/extract/staging orchestration, but two of its private helpers are pure and carry the real
+> rules, so they are ported and tested ahead of the rest, into `Launch/AtlInstall.cs`.
+> `AtlInstall.GetDirForModType` is the mod-type placement table — a delivery instruction, not a
+> category: "mods" → the mods folder, "jar"/"forge" → jarmods, "dependency" → a per-Minecraft-version
+> mods subfolder, several types (extract/decomp/root/…) resolve to no plain destination because they
+> are handled at another stage, Millenaire is recognised-but-unsupported, and Unknown is a fatal error.
+> `AtlInstall.DetectLibrary` turns a library's server path or filename into a Gradle coordinate so a
+> library ATLauncher ships lines up with the metadata index — server path preferred, two known
+> filenames (guava, commons-lang3) recognised, and an md5-keyed synthetic coordinate as the fallback.
+> 25 tests over every mod-type row and all three detection branches. The remaining install orchestration
+> (download, extract, keeps/deletes, staging) is a later wave; its parsing (wave 83) and now its
+> decision helpers are in place.
 
 > **External tools — MCEdit and profilers (wave 84).** Ported the pure core of
 > `tools/{MCEditTool,JProfiler,JVisualVM,GenericProfiler}` to `Launch/ExternalTools.cs`. Upstream wraps
