@@ -5,9 +5,11 @@
 
 > [!NOTE]
 > **A C#/.NET 9 + Avalonia port lives in [`dotnet/`](dotnet/).** It re-implements the launcher for
-> Windows, Linux and macOS on .NET, with ~3,200 passing tests across the ported subsystems. It is
-> **not a finished release**: Microsoft sign-in needs a build-time credential, no automated test starts
-> a real game, and the GUI has not yet been exercised by a human. See [`dotnet/README.md`](dotnet/README.md)
+> Windows, Linux and macOS on .NET, with ~3,200 passing tests across the ported subsystems. A vanilla
+> instance created in the GUI has been **launched end-to-end to the Minecraft main menu on Windows**
+> (resolve → download → Java → real GPU-rendered game). It is still **not a finished release**:
+> Microsoft sign-in needs a runtime credential (offline accounts work), no *automated* test starts a
+> real game yet, and Linux/macOS launches are unverified. See [`dotnet/README.md`](dotnet/README.md)
 > for build/run/publish instructions and an honest, subsystem-by-subsystem status.
 
 The rest of this document describes the original Qt/C++ launcher.
