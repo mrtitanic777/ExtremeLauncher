@@ -6,8 +6,10 @@ repository root; this directory is the port.
 
 ## Status — read this before shipping
 
-The port is **feature-rich and heavily tested, but not yet proven end to end by a human.** Be precise
-about what that means:
+The port is **feature-rich, heavily tested, and now proven end to end.** A vanilla instance created in
+the GUI was launched all the way to the **Minecraft main menu on Windows** — resolve → download all
+libraries and assets → locate Java → a real, GPU-rendered game window ("Setting user", LWJGL 3.4.1,
+OpenGL on the GPU, sound engine, texture atlases). Be precise about what is and isn't verified:
 
 **Done and covered by tests (3,238 passing, 15 skipped):**
 - Version/component resolution, including Forge, NeoForge, Fabric and Quilt — confirmed against the
@@ -22,18 +24,24 @@ about what that means:
 - Pack export (Modrinth `.mrpack` and CurseForge `.zip`).
 - A headless CLI (`extremelauncher`) that lists, inspects and launches instances.
 
-**Not done / not verified — the real ship gates:**
-- **Microsoft sign-in is not usable from a source build.** The flow is present, but the MSA client id
-  is intentionally empty and must come from a build-time secret (see *Credentials*). Without it, only
-  offline sessions work.
-- **No test starts a real JVM.** Resolution and the command line are proven; an actual Minecraft
-  process booting is not.
-- **No window has been rendered or clicked by a human.** Tests run headless (Avalonia's headless
-  backend fakes the renderer), so the UI is logic-verified but never visually verified.
+**Verified by hand (not yet automated):**
+- **A real Windows launch to the main menu**, as above. It was driven through the CLI (`launch`),
+  which shares `LauncherService` with the GUI's Launch button, after creating the instance in the GUI.
+- **The GUI, visually.** Every window was reviewed from screenshots of the actual running `.exe`
+  (captured with `PrintWindow`) in both light and dark themes — not the headless renderer.
 
-In short: the **code** is at parity for the subsystems above; a real release still needs credentials, a
-human at a desktop, and a genuine game launch. See [`PORTING.md`](PORTING.md) for the full
-subsystem-by-subsystem log.
+**Not done / not verified — the remaining ship gates:**
+- **Microsoft sign-in is not usable from a source build.** The flow is present, but the MSA client id
+  is intentionally empty and must come from a runtime credential (see *Credentials*). Without it, only
+  offline sessions work.
+- **No *automated* test starts a real JVM.** The end-to-end launch above was a manual run; the test
+  suite still stops at resolution and command-line construction.
+- **Linux and macOS launches are unverified.** Only Windows has been run end to end; the macOS builds
+  are also unsigned.
+
+In short: the core job — create an instance and launch the game — works. A polished release still wants
+credentials wired in, the launch covered by an automated test, and a run on Linux and macOS. See
+[`PORTING.md`](PORTING.md) for the full subsystem-by-subsystem log.
 
 ## Requirements
 
