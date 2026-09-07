@@ -59,6 +59,24 @@ public partial class InstanceWindow : Window
         AddHandler(DragDrop.DropEvent, OnDrop);
     }
 
+    // The custom title bar is our own control, so it starts the window move itself (and
+    // maximises/restores on a double click), the way the OS caption would have.
+    private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        if (e.ClickCount == 2)
+        {
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+            return;
+        }
+
+        BeginMoveDrag(e);
+    }
+
     private static void OnDragOver(object? sender, DragEventArgs e)
         => e.DragEffects = e.Data.Contains(DataFormats.Files) ? DragDropEffects.Copy : DragDropEffects.None;
 
