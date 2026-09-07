@@ -12,6 +12,7 @@
 -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="using:ExtremeLauncher.App"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:ExtremeLauncher.ViewModels"
@@ -20,9 +21,15 @@
         x:DataType="vm:PackBrowserViewModel"
         Title="Install a modpack"
         Width="900" Height="620"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppCanvasBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaTitleBarHeightHint="40">
 
-  <DockPanel Margin="12">
+  <DockPanel>
+    <app:TitleBar DockPanel.Dock="Top" />
+    <DockPanel Margin="12">
 
     <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
       <Grid ColumnDefinitions="*,Auto">
@@ -105,5 +112,6 @@
         </ListBox>
       </DockPanel>
     </Grid>
+  </DockPanel>
   </DockPanel>
 </Window>
