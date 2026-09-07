@@ -193,6 +193,90 @@ public sealed class AtlVersionMod
     public bool EffectivelyHidden => Hidden || Library;
 }
 
+/// <summary>An override main class, applied only when the gating mod is present.</summary>
+public sealed class AtlPackVersionMainClass
+{
+    public string MainClass { get; set; } = string.Empty;
+
+    /// <summary>The mod name this override depends on; empty means unconditional.</summary>
+    public string Depends { get; set; } = string.Empty;
+}
+
+/// <summary>Extra JVM arguments, applied only when the gating mod is present.</summary>
+public sealed class AtlPackVersionExtraArguments
+{
+    public string Arguments { get; set; } = string.Empty;
+
+    /// <summary>The mod name these arguments depend on; empty means unconditional.</summary>
+    public string Depends { get; set; } = string.Empty;
+}
+
+/// <summary>Messages shown to the user on install and on update.</summary>
+public sealed class AtlVersionMessages
+{
+    public string Install { get; set; } = string.Empty;
+
+    public string Update { get; set; } = string.Empty;
+}
+
+/// <summary>A single file or folder rule (a base and a target path) used by keeps and deletes.</summary>
+public sealed class AtlVersionFileRule
+{
+    public string Base { get; set; } = string.Empty;
+
+    public string Target { get; set; } = string.Empty;
+}
+
+/// <summary>The files and folders a version keeps (does not overwrite) on update.</summary>
+public sealed class AtlVersionKeeps
+{
+    public List<AtlVersionFileRule> Files { get; } = [];
+
+    public List<AtlVersionFileRule> Folders { get; } = [];
+}
+
+/// <summary>The files and folders a version deletes on update.</summary>
+public sealed class AtlVersionDeletes
+{
+    public List<AtlVersionFileRule> Files { get; } = [];
+
+    public List<AtlVersionFileRule> Folders { get; } = [];
+}
+
+/// <summary>One installable version of an ATLauncher pack, fully described.</summary>
+public sealed class AtlPackVersion
+{
+    public string Version { get; set; } = string.Empty;
+
+    public string Minecraft { get; set; } = string.Empty;
+
+    public bool NoConfigs { get; set; }
+
+    public AtlPackVersionMainClass MainClass { get; set; } = new();
+
+    public AtlPackVersionExtraArguments ExtraArguments { get; set; } = new();
+
+    public AtlVersionLoader Loader { get; set; } = new();
+
+    public List<AtlVersionLibrary> Libraries { get; } = [];
+
+    public List<AtlVersionMod> Mods { get; } = [];
+
+    public AtlVersionConfigs Configs { get; set; } = new();
+
+    /// <summary>Colour codes keyed by name, referenced by a mod's <see cref="AtlVersionMod.Colour"/>.</summary>
+    public Dictionary<string, string> Colours { get; } = [];
+
+    /// <summary>Warning texts keyed by name, referenced by a mod's <see cref="AtlVersionMod.Warning"/>.</summary>
+    public Dictionary<string, string> Warnings { get; } = [];
+
+    public AtlVersionMessages Messages { get; } = new();
+
+    public AtlVersionKeeps Keeps { get; } = new();
+
+    public AtlVersionDeletes Deletes { get; } = new();
+}
+
 public static class AtlPackManifest
 {
     /// <summary>The placeholder ATLauncher uses for a path separator inside a JSON string.</summary>
@@ -376,6 +460,115 @@ public static class AtlPackManifest
 
         return mod;
     }
+
+    /// <summary>
+    /// Reads a whole pack version: the top-level fields plus every nested section — loader, libraries,
+    /// mods, configs, the colour and warning tables the mods reference by name, install/update
+    /// messages, and the keep/delete rules an update applies. Ported from ATLPackManifest's
+    /// <c>loadVersion</c>. Each optional section is read only when present, matching upstream.
+    /// </summary>
+    public static AtlPackVersion LoadVersion(JsonObject obj)
+    {
+        ArgumentNullException.ThrowIfNull(obj);
+
+        var version = new AtlPackVersion
+        {
+            Version = Json.RequireString(obj, "version"),
+            Minecraft = Json.RequireString(obj, "minecraft"),
+            NoConfigs = Json.EnsureBoolean(obj["noConfigs"], false),
+        };
+
+        if (obj.ContainsKey("mainClass"))
+        {
+            var main = Json.RequireObject(obj, "mainClass");
+            version.MainClass = new AtlPackVersionMainClass
+            {
+                MainClass = Json.EnsureString(main, "mainClass"),
+                Depends = Json.EnsureString(main, "depends"),
+            };
+        }
+
+        if (obj.ContainsKey("extraArguments"))
+        {
+            var arguments = Json.RequireObject(obj, "extraArguments");
+            version.ExtraArguments = new AtlPackVersionExtraArguments
+            {
+                Arguments = Json.EnsureString(arguments, "arguments"),
+                Depends = Json.EnsureString(arguments, "depends"),
+            };
+        }
+
+        if (obj.ContainsKey("loader"))
+        {
+            version.Loader = LoadVersionLoader(Json.RequireObject(obj, "loader"));
+        }
+
+        if (obj.ContainsKey("libraries"))
+        {
+            foreach (var element in Json.RequireArray(obj, "libraries"))
+            {
+                version.Libraries.Add(LoadVersionLibrary(Json.RequireObjectValue(element)));
+            }
+        }
+
+        if (obj.ContainsKey("mods"))
+        {
+            foreach (var element in Json.RequireArray(obj, "mods"))
+            {
+                version.Mods.Add(LoadVersionMod(Json.RequireObjectValue(element)));
+            }
+        }
+
+        if (obj.ContainsKey("configs"))
+        {
+            version.Configs = LoadVersionConfigs(Json.RequireObject(obj, "configs"));
+        }
+
+        foreach (var (key, value) in Json.EnsureObject(obj, "colours"))
+        {
+            version.Colours[key] = Json.RequireString(value, "colour");
+        }
+
+        foreach (var (key, value) in Json.EnsureObject(obj, "warnings"))
+        {
+            version.Warnings[key] = Json.RequireString(value, "warning");
+        }
+
+        var messages = Json.EnsureObject(obj, "messages");
+        version.Messages.Install = Json.EnsureString(messages, "install");
+        version.Messages.Update = Json.EnsureString(messages, "update");
+
+        LoadFileRules(version.Keeps.Files, version.Keeps.Folders, Json.EnsureObject(obj, "keeps"));
+        LoadFileRules(version.Deletes.Files, version.Deletes.Folders, Json.EnsureObject(obj, "deletes"));
+
+        return version;
+    }
+
+    /// <summary>Reads the "files" and "folders" arrays a keeps or deletes section shares.</summary>
+    private static void LoadFileRules(List<AtlVersionFileRule> files, List<AtlVersionFileRule> folders, JsonObject obj)
+    {
+        if (obj.ContainsKey("files"))
+        {
+            foreach (var element in Json.RequireArray(obj, "files"))
+            {
+                files.Add(LoadFileRule(Json.RequireObjectValue(element)));
+            }
+        }
+
+        if (obj.ContainsKey("folders"))
+        {
+            foreach (var element in Json.RequireArray(obj, "folders"))
+            {
+                folders.Add(LoadFileRule(Json.RequireObjectValue(element)));
+            }
+        }
+    }
+
+    private static AtlVersionFileRule LoadFileRule(JsonObject obj) => new()
+    {
+        Base = Json.RequireString(obj, "base"),
+        Target = Json.RequireString(obj, "target"),
+    };
 
     /// <summary>
     /// The mods a fresh install starts with selected.
