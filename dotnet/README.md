@@ -34,9 +34,12 @@ natives and `:` classpath separator. Be precise about what is and isn't verified
   (captured with `PrintWindow`) in both light and dark themes — not the headless renderer.
 
 **Not done / not verified — the remaining ship gates:**
-- **Microsoft sign-in is not usable from a source build.** The flow is present, but the MSA client id
-  is intentionally empty and must come from a runtime credential (see *Credentials*). Without it, only
-  offline sessions work.
+- **Microsoft sign-in needs a client id you supply.** The flow is complete and tested (device code →
+  Xbox → XSTS → Minecraft → profile, with refresh; 30+ auth tests), and the config → UI wiring is
+  verified on the running app — set a client id and **Accounts** offers the enabled *Sign in with
+  Microsoft*. What is left is per-user, not code: register a (public) OAuth client id and sign in with
+  your own Microsoft account in the browser. See **Enabling Microsoft sign-in**. Offline accounts work
+  with no setup.
 - **No *automated* test starts a real JVM.** The end-to-end launches above were manual runs; the test
   suite resolves and builds the command line (`LaunchEndToEndLiveTests`) but does not spawn a JVM.
 - **macOS is not launch-verified.** Windows and Linux have been run end to end; macOS has not, and its
@@ -116,6 +119,28 @@ API keys are **never compiled in** and none are committed. They are supplied at 
 runs offline-only; with the CurseForge key empty, CurseForge browsing/import is disabled; with the imgur
 id empty, screenshot upload is disabled. The MSA client id identifies a *public* OAuth client and is not
 itself a secret; the CurseForge key **is** a secret — treat it as one.
+
+### Enabling Microsoft sign-in
+
+The sign-in flow is fully implemented and tested — device code → Xbox Live → XSTS (Xbox and Mojang
+audiences) → Minecraft services → profile, with token refresh. The one thing it needs is *your own*
+Microsoft OAuth client id (a **public** client id, not a secret). Register one once:
+
+1. In the [Microsoft Entra admin center](https://entra.microsoft.com): **App registrations → New
+   registration**.
+2. Give it any name. Under **Supported account types** pick **Personal Microsoft accounts only** — the
+   launcher uses the `consumers` endpoint.
+3. Leave the redirect URI blank and click **Register**.
+4. Open **Authentication → Advanced settings** and set **Allow public client flows** to **Yes** (this
+   is what enables the device-code flow the launcher uses), then **Save**.
+5. Copy the **Application (client) ID** from the app's **Overview** page.
+
+Hand it to the launcher by either means above, e.g. `EXTREMELAUNCHER_MSA_CLIENT_ID=<client-id>` or
+`{ "msaClientId": "<client-id>" }`. Restart it: **Accounts** now offers **Sign in with Microsoft**,
+which shows a short code and a URL — enter the code at that URL in any browser, approve, and the
+account appears in the list. The launcher requests only the `XboxLive.SignIn` and
+`XboxLive.offline_access` scopes. Because the client id is public, a fork may also bake its own into
+the build (see `BuildConfigOverrides`).
 
 ## Project layout
 
