@@ -81,8 +81,10 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 > `LauncherService.ResolveAsync` the GUI uses, and asserts it is a real Minecraft launch command
 > (Mojang's entry point, the chosen version, LWJGL and the client jar on the classpath). It is
 > metadata-weight — it does not download libraries/assets or spawn a JVM, and it skips rather than
-> fails with no network. This was first confirmed by hand: a vanilla instance created in the GUI
-> launched to the Minecraft main menu on Windows (Java located, a real GPU-rendered window).
+> fails with no network. This was first confirmed by hand on **two platforms**: a vanilla instance
+> created in the GUI launched to the Minecraft main menu on **Windows** (system Java, a real
+> GPU-rendered window) and on **Linux** (WSL2 + WSLg, where the launcher auto-downloaded its own JRE
+> and built a Linux command line with the correct native classifiers). macOS is not yet verified.
 
 > ⚠️ **Unverified: the INI writer's byte-compatibility.** `INIFile` is a wrapper over `QSettings` with
 > `IniFormat`, so the on-disk format is *QSettings' particular INI dialect* — and every existing
