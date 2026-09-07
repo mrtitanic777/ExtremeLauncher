@@ -26,6 +26,9 @@
     <Content Include="..\..\..\tests\testdata\Version\test_vectors.txt"
              Link="testdata\Version\test_vectors.txt"
              CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\tests\testdata\CatPacks\index.json"
+             Link="testdata\CatPacks\index.json"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!--

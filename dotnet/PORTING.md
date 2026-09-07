@@ -74,7 +74,13 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**368 of 758 files. 3,265 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**369 of 758 files. 3,278 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **CatPack (wave 75).** Ported `ui/themes/CatPack.cpp`'s `JsonCatPack` date-selection to
+> `Core/CatPack.cs`, test-first against the shared `tests/testdata/CatPacks/index.json` — 13 tests, all
+> the range-edge cases from `CatPack_test.cpp` (single-day variant, first-in-order wins on overlap, and
+> the two ranges that wrap the new year). Only the pure selection logic is ported; the embedded-resource
+> `BasicCatPack` path and the theme wiring stay with the UI.
 
 > ✅ **The end-to-end launch is now pinned by a test.** `LaunchEndToEndLiveTests` creates and resolves
 > a vanilla instance against the live meta server, then builds the JVM command line through the same
