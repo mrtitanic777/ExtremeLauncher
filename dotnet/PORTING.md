@@ -74,7 +74,21 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**375 of 758 files. 3,318 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**376 of 758 files. 3,327 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **ATLauncher parsing layer completed (wave 83).** A prior wave ported the ATLauncher *mod chooser*
+> (`AtlPackManifest`: mod/loader/library parsing, `GetDefaultSelection`, `ResolveDependencies`); this
+> wave finishes the pure parsing layer. `AtlPackManifest.LoadVersion` assembles a whole pack version —
+> the top-level fields plus every nested section (main class, extra arguments, loader, libraries, mods,
+> configs, the colour/warning tables mods reference by name, install/update messages, and the
+> keep/delete file rules an update applies), each read only when present. New file `AtlPackIndex.cs`
+> ports the two readers that surround it: the pack index (`AtlPackIndex.LoadIndexedPack` — the browser's
+> list, deriving a `SafeName` icon filename by stripping the name to letters and digits) and the share
+> code (`AtlShareCodeReader.LoadResponse` — a saved optional-mod selection wrapped in the API's error
+> envelope, with data present only on success). 9 tests over hand-built JSON (whole-version assembly,
+> minimal version, index fields + safe-name derivation + private type, and success/error/null-message
+> share codes). ATLauncher's parsing is now complete; the ~1,075-line install task (`ATLPackInstallTask`)
+> is the remaining piece, a later wave.
 
 > **Technic install tasks (wave 82).** The download/extract front end for the wave-81 processor, ported
 > from `technic/SingleZipPackInstallTask` and `technic/SolderPackInstallTask`. `TechnicPackStager`
