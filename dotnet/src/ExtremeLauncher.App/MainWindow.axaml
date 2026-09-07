@@ -113,6 +113,16 @@
           </StackPanel>
         </Button>
 
+        <!-- The classic Feed The Beast catalogue: an older, static pack list kept alongside the
+             Modrinth browser for the packs that only ever lived there. -->
+        <Button Command="{Binding BrowseLegacyFtbCommand}" IsEnabled="{Binding CanBrowseLegacyFtb}"
+                ToolTip.Tip="Browse the classic FTB pack list">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <PathIcon Classes="tbi" Data="{StaticResource IconModpacks}" />
+            <TextBlock Text="Classic FTB" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+
         <!-- The other way somebody gets their first instance, and often the only way they ever make
              one. Needs no selection, for the same reason New does not. -->
         <Button Command="{Binding ImportPackCommand}" IsEnabled="{Binding CanImportPack}">

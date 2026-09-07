@@ -287,6 +287,7 @@ public partial class App : Application
                  * A pack imported from a file cannot -- see InstanceSettings.CanCheckForPackUpdates.
                  */
                 browser: new AppPackBrowser(() => desktop.MainWindow, client, prompts, log, paths, metaUrl),
+                legacyFtbBrowser: new AppLegacyFtbBrowser(() => desktop.MainWindow, client, prompts, log, paths),
                 /*
                  * The launcher's own log, which until now lived on disk and nowhere in the launcher
                  * -- and is the first thing anybody asking for help gets asked for.

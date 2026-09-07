@@ -74,7 +74,16 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**372 of 758 files. 3,301 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**374 of 758 files. 3,307 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Legacy FTB browser UI (wave 80).** The last piece: `LegacyFtbBrowserViewModel` (fetch the catalogue
+> once, filter it in memory, pick a pack and version — 6 tests over a stub source), the
+> `LegacyFtbBrowserWindow` (dark title bar, live filter, pack list + details/version, mirroring the
+> Modrinth browser), and the app wiring — `ILegacyFtbBrowser`/`AppLegacyFtbBrowser` staging a
+> `LegacyFtbPackInstallTask` behind the progress window, a `BrowseLegacyFtb` command, and a "Classic
+> FTB" toolbar button. **Verified on the real .exe: the window opened and listed real packs from the
+> live FTB CDN** (FTB Academy, Revelation, Direwolf20 1.12, …). Legacy FTB is now a complete,
+> user-facing feature (waves 76–80).
 
 > **Legacy FTB install task (wave 79).** Ported `legacy_ftb/PackInstallTask` to
 > `Launch/LegacyFtbPackInstall.cs`: `LegacyFtbPackInstallTask` (an `IInstanceTask` that downloads the

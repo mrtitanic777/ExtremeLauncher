@@ -54,6 +54,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IInstanceCreator? creator = null,
         IPackImporter? importer = null,
         IPackBrowser? browser = null,
+        ILegacyFtbBrowser? legacyFtbBrowser = null,
         ILauncherLogViewer? launcherLog = null,
         IAccountsUi? accounts = null,
         IGlobalSettingsUi? settings = null,
@@ -72,6 +73,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _creator = creator;
         _importer = importer;
         _browser = browser;
+        _legacyFtbBrowser = legacyFtbBrowser;
         _launcherLog = launcherLog;
         _accounts = accounts;
         _settings = settings;
@@ -139,6 +141,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly IPackImporter? _importer;
 
     private readonly IPackBrowser? _browser;
+
+    private readonly ILegacyFtbBrowser? _legacyFtbBrowser;
 
     private readonly ILauncherLogViewer? _launcherLog;
 
@@ -345,6 +349,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         var installed = await _browser!.BrowseAndInstallAsync(list).ConfigureAwait(true);
+
+        Instances.Reload();
+
+        if (installed.Length != 0)
+        {
+            Instances.Select(installed);
+        }
+
+        RaiseSelectionDependent();
+    }
+
+    /// <summary>Whether the classic FTB browser can be opened.</summary>
+    public bool CanBrowseLegacyFtb => _legacyFtbBrowser is not null && !Launch.IsBusy;
+
+    /// <summary>Browses the classic (legacy) FTB catalogue and installs the chosen pack.</summary>
+    [RelayCommand]
+    public async Task BrowseLegacyFtbAsync()
+    {
+        if (!CanBrowseLegacyFtb || Instances.Source is not { } list)
+        {
+            return;
+        }
+
+        var installed = await _legacyFtbBrowser!.BrowseAndInstallAsync(list).ConfigureAwait(true);
 
         Instances.Reload();
 
@@ -944,6 +972,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(CanCreateInstance));
         OnPropertyChanged(nameof(CanImportPack));
         OnPropertyChanged(nameof(CanBrowsePacks));
+        OnPropertyChanged(nameof(CanBrowseLegacyFtb));
         OnPropertyChanged(nameof(HasDuplicationStatus));
         OnPropertyChanged(nameof(HasIndeterminateCopyProgress));
         OnPropertyChanged(nameof(CanUndoDelete));
@@ -984,6 +1013,13 @@ public interface ILauncherLogViewer
 /// that matters afterwards -- records which project and version the instance came from.
 /// </remarks>
 public interface IPackBrowser
+{
+    /// <summary>Returns the new instance's id, or empty when the user cancelled or it failed.</summary>
+    Task<string> BrowseAndInstallAsync(InstanceList list);
+}
+
+/// <summary>Opens the classic (legacy) FTB browser and installs the chosen pack. Implemented by the app.</summary>
+public interface ILegacyFtbBrowser
 {
     /// <summary>Returns the new instance's id, or empty when the user cancelled or it failed.</summary>
     Task<string> BrowseAndInstallAsync(InstanceList list);
