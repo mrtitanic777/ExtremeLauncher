@@ -22,7 +22,7 @@ The rest of this document describes the original Qt/C++ launcher.
 
 ### .NET port — prebuilt downloads
 
-The C#/.NET 9 + Avalonia port now has a **prebuilt release**: **[Extreme Launcher .NET port — 5.1.3](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest)** — a full UI refresh over 5.1.
+The C#/.NET 9 + Avalonia port now has a **prebuilt release**: **[Extreme Launcher .NET port — 5.1.3](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest)** — the classic FTB browser, jar-mod install and cat-pack backgrounds, on top of 5.1.2's full dark UI and launch verified on Windows and Linux.
 
 Self-contained builds — no .NET runtime to install, just download, unzip and run:
 
