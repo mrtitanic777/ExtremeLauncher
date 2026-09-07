@@ -74,7 +74,15 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**371 of 758 files. 3,298 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**372 of 758 files. 3,301 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Legacy FTB install task (wave 79).** Ported `legacy_ftb/PackInstallTask` to
+> `Launch/LegacyFtbPackInstall.cs`: `LegacyFtbPackInstallTask` (an `IInstanceTask` that downloads the
+> archive and stages it) and the testable `LegacyFtbPackBuilder.BuildFromArchive` (extract → move the
+> game folder up → pick the install method: a Forge `pack.json`, an `instMods/` jar-mod folder, or
+> neither, which fails as upstream's does → write mmc-pack.json + instance.cfg with the FTB logo icon).
+> 3 tests against hand-built archives (no network) for the Forge, jar-mod and no-method outcomes. With
+> waves 76–78 this makes legacy FTB installable end to end; only the browser UI remains.
 
 > **Jar-mod install (wave 78).** Ported `PackProfile::installJarMods_internal` to
 > `Launch/JarModInstaller.cs` — a Launch-level operation, since PackProfile is decoupled from instance
