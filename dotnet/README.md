@@ -6,10 +6,12 @@ repository root; this directory is the port.
 
 ## Status — read this before shipping
 
-The port is **feature-rich, heavily tested, and now proven end to end.** A vanilla instance created in
-the GUI was launched all the way to the **Minecraft main menu on Windows** — resolve → download all
-libraries and assets → locate Java → a real, GPU-rendered game window ("Setting user", LWJGL 3.4.1,
-OpenGL on the GPU, sound engine, texture atlases). Be precise about what is and isn't verified:
+The port is **feature-rich, heavily tested, and now proven end to end on two platforms.** A vanilla
+instance created in the GUI was launched all the way to the **Minecraft main menu on both Windows and
+Linux** — resolve → download all libraries and assets → locate or auto-download Java → a real,
+GPU-rendered game window ("Setting user", LWJGL 3.4.1, OpenGL on the GPU, sound engine, texture
+atlases). On Linux the runtime was auto-downloaded and the command was built with the correct Linux
+natives and `:` classpath separator. Be precise about what is and isn't verified:
 
 **Done and covered by tests (3,238 passing, 15 skipped):**
 - Version/component resolution, including Forge, NeoForge, Fabric and Quilt — confirmed against the
@@ -25,8 +27,9 @@ OpenGL on the GPU, sound engine, texture atlases). Be precise about what is and 
 - A headless CLI (`extremelauncher`) that lists, inspects and launches instances.
 
 **Verified by hand (not yet automated):**
-- **A real Windows launch to the main menu**, as above. It was driven through the CLI (`launch`),
+- **Real launches to the main menu on Windows and Linux**, as above. Driven through the CLI (`launch`),
   which shares `LauncherService` with the GUI's Launch button, after creating the instance in the GUI.
+  On Linux (WSL2 + WSLg) the launcher auto-downloaded its own JRE and started the game.
 - **The GUI, visually.** Every window was reviewed from screenshots of the actual running `.exe`
   (captured with `PrintWindow`) in both light and dark themes — not the headless renderer.
 
@@ -34,10 +37,10 @@ OpenGL on the GPU, sound engine, texture atlases). Be precise about what is and 
 - **Microsoft sign-in is not usable from a source build.** The flow is present, but the MSA client id
   is intentionally empty and must come from a runtime credential (see *Credentials*). Without it, only
   offline sessions work.
-- **No *automated* test starts a real JVM.** The end-to-end launch above was a manual run; the test
-  suite still stops at resolution and command-line construction.
-- **Linux and macOS launches are unverified.** Only Windows has been run end to end; the macOS builds
-  are also unsigned.
+- **No *automated* test starts a real JVM.** The end-to-end launches above were manual runs; the test
+  suite resolves and builds the command line (`LaunchEndToEndLiveTests`) but does not spawn a JVM.
+- **macOS is not launch-verified.** Windows and Linux have been run end to end; macOS has not, and its
+  builds are unsigned.
 
 In short: the core job — create an instance and launch the game — works. A polished release still wants
 credentials wired in, the launch covered by an automated test, and a run on Linux and macOS. See
