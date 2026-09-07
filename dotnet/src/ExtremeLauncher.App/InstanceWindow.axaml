@@ -6,9 +6,23 @@
         Title="{Binding Title}"
         Width="880" Height="560"
         MinWidth="600" MinHeight="380"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppCanvasBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaTitleBarHeightHint="40">
 
   <DockPanel>
+
+    <!-- Our own dark title bar, matching the main window, so the instance window is dark to the top
+         edge. Draggable (see code-behind); OS caption buttons sit at the right. -->
+    <Border DockPanel.Dock="Top" Height="40"
+            Name="TitleBar" PointerPressed="TitleBar_PointerPressed"
+            Background="{DynamicResource AppToolbarBrush}">
+      <TextBlock Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
+                 Margin="14,0,0,0"
+                 Foreground="{DynamicResource ButtonForeground}" />
+    </Border>
 
     <!-- The save failure, above everything. A page that could not write its file is the one thing here
          a user must not miss: upstream's apply() returns void, so it cannot tell them at all. -->
