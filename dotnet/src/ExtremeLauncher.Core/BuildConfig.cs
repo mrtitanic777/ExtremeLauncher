@@ -112,6 +112,11 @@ public sealed record BuildConfig
 
     public string ImgurBaseUrl { get; init; } = "https://api.imgur.com/3/";
 
+    /// <summary>The CDN for the legacy Feed The Beast pack lists and archives, from CMakeLists'
+    /// Launcher_LEGACY_FTB_CDN_BASE_URL. The static pack lists live at <c>static/modpacks.xml</c> and
+    /// <c>static/thirdparty.xml</c> under this base.</summary>
+    public string LegacyFtbCdnBaseUrl { get; init; } = "https://dist.creeper.host/FTB2/";
+
     /// <summary>Where the news toolbar fetches from.</summary>
     /// <remarks>
     /// The fork's own CMake default (Launcher_NEWS_RSS_URL). Called RSS everywhere upstream -- the
