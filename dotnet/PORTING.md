@@ -74,7 +74,19 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**378 of 758 files. 3,376 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**379 of 758 files. 3,388 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Local skin entry (wave 86).** Ported `minecraft/skins/SkinModel` to `Minecraft/Skins/LocalSkin.cs`
+> — one entry in the user's local skin library: a PNG on disk, its arm model (classic/slim), an optional
+> cape, and the source URL. It is named `LocalSkin` because `SkinModel` is already the arm-model enum
+> (Auth/SkinApi); upstream overloaded the one name for both. The entry carries the behaviour: `Name`
+> (the filename without extension), the JSON round-trip through skins.json (a bare name in, a
+> directory-relative ".png" path out), `Rename` (moves the file, updates the path), and `IsValid` — the
+> Minecraft skin size rule (64 wide, 32 or 64 tall) read straight from the PNG IHDR header rather than
+> by decoding the image, since skins are always PNG. 12 tests over name/model-string, JSON round-trip
+> and the classic default, rename, and the size rule (including non-PNG, missing, and truncated files).
+> The list manager around it (`SkinList`) is a Qt list-model with a file watcher and drag-and-drop, and
+> stays with the UI.
 
 > **ATLauncher install decision logic (wave 85).** The ATLauncher install task is ~1,075 lines of Qt
 > download/extract/staging orchestration, but two of its private helpers are pure and carry the real
