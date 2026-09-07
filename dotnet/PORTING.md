@@ -74,7 +74,15 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**368 of 758 files. 3,264 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**368 of 758 files. 3,265 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> ✅ **The end-to-end launch is now pinned by a test.** `LaunchEndToEndLiveTests` creates and resolves
+> a vanilla instance against the live meta server, then builds the JVM command line through the same
+> `LauncherService.ResolveAsync` the GUI uses, and asserts it is a real Minecraft launch command
+> (Mojang's entry point, the chosen version, LWJGL and the client jar on the classpath). It is
+> metadata-weight — it does not download libraries/assets or spawn a JVM, and it skips rather than
+> fails with no network. This was first confirmed by hand: a vanilla instance created in the GUI
+> launched to the Minecraft main menu on Windows (Java located, a real GPU-rendered window).
 
 > ⚠️ **Unverified: the INI writer's byte-compatibility.** `INIFile` is a wrapper over `QSettings` with
 > `IniFormat`, so the on-disk format is *QSettings' particular INI dialect* — and every existing
