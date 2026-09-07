@@ -74,7 +74,17 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**379 of 758 files. 3,388 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**380 of 758 files. 3,402 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **JVM argument validation (wave 87).** Ported the one piece of logic in `JavaCommon.cpp` —
+> `checkJVMArgs` — to `Java/JavaArguments.cs`; the rest of that file is dialog boxes and a Qt task. The
+> settings pages run this before accepting a user's extra JVM arguments, and it refuses two things:
+> memory options that duplicate the launcher's own Memory boxes (`-Xms`, `-Xmx`, `-XX:PermSize`,
+> `-XX:InitialHeapSize`, and upstream's own typo `-XX-MaxHeapSize`, kept as written), and pinning a
+> required Java version with `-version:`. `CheckJvmArgs` returns which problem tripped (memory checked
+> first, as upstream), `AreJvmArgsSafe` is the boolean form, and `WarningFor` carries the message the UI
+> shows. 14 tests over every refused flag, the memory-before-version ordering, ordinary arguments that
+> pass, and the warning text.
 
 > **Local skin entry (wave 86).** Ported `minecraft/skins/SkinModel` to `Minecraft/Skins/LocalSkin.cs`
 > — one entry in the user's local skin library: a PNG on disk, its arm model (classic/slim), an optional
