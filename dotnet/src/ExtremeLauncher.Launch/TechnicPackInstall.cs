@@ -32,6 +32,7 @@
  */
 
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text;
 
 using ExtremeLauncher.Core;
@@ -39,6 +40,7 @@ using ExtremeLauncher.Meta;
 using ExtremeLauncher.Minecraft;
 using ExtremeLauncher.ModPlatform;
 using ExtremeLauncher.Settings;
+using ExtremeLauncher.Tasks;
 
 namespace ExtremeLauncher.Launch;
 
@@ -178,5 +180,251 @@ public static class TechnicPackBuilder
         stream.CopyTo(memory);
 
         return memory.ToArray();
+    }
+}
+
+/// <summary>
+/// Extracts one or more Technic archives into the staging game folder and builds the instance. A
+/// single-zip pack has one archive; a Solder pack has one per mod, layered in order (a later archive
+/// overwriting an earlier one where they collide), exactly as upstream extracts them.
+/// </summary>
+/// <remarks>
+/// Upstream chmods every extracted file +rw (dirs +rwx) after unzipping; that is a Unix-permissions
+/// workaround for a QuaZip quirk. .NET's extractor writes files the current user can already read and
+/// write, so the fix-up is dropped.
+/// </remarks>
+public static class TechnicPackStager
+{
+    public static void StageAndBuild(
+        InstancePaths paths,
+        RuntimeContext runtimeContext,
+        IEnumerable<string> archivePaths,
+        string instanceName,
+        string minecraftVersion = "",
+        string iconKey = "default")
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        ArgumentNullException.ThrowIfNull(archivePaths);
+
+        var extractDir = paths.GameRoot;
+        FileSystem.EnsureFolderPathExists(extractDir);
+
+        foreach (var archive in archivePaths)
+        {
+            if (MMCZip.ExtractDir(archive, extractDir) is null)
+            {
+                throw new LauncherException($"Failed to extract the modpack archive {archive}.");
+            }
+        }
+
+        TechnicPackBuilder.BuildFromStaging(paths, runtimeContext, instanceName, minecraftVersion, iconKey);
+    }
+}
+
+/// <summary>Downloads a Technic single-zip pack and builds it into the staging instance.</summary>
+public sealed class TechnicSingleZipInstallTask : LauncherTask, IInstanceTask
+{
+    private readonly string _sourceUrl;
+
+    private readonly string _minecraftVersion;
+
+    private readonly RuntimeContext _runtimeContext;
+
+    private readonly HttpClient _client;
+
+    private readonly string _iconKey;
+
+    private readonly string _instanceName;
+
+    public TechnicSingleZipInstallTask(
+        string sourceUrl,
+        string minecraftVersion,
+        RuntimeContext runtimeContext,
+        HttpClient client,
+        string instanceName = "",
+        string iconKey = "default",
+        string group = "")
+        : base($"Installing modpack {instanceName}")
+    {
+        _sourceUrl = sourceUrl ?? throw new ArgumentNullException(nameof(sourceUrl));
+        _minecraftVersion = minecraftVersion ?? string.Empty;
+        _runtimeContext = runtimeContext;
+        _client = client ?? throw new ArgumentNullException(nameof(client));
+        _instanceName = instanceName;
+        _iconKey = iconKey;
+        Group = group;
+    }
+
+    public string StagingPath { get; set; } = string.Empty;
+
+    string IInstanceTask.Name => _instanceName;
+
+    public string Group { get; }
+
+    public bool ShouldOverride => false;
+
+    public string OriginalInstanceId => string.Empty;
+
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        if (StagingPath.Length == 0)
+        {
+            throw new LauncherException("No staging path was set.");
+        }
+
+        FileSystem.EnsureFolderPathExists(StagingPath);
+
+        SetStatus("Downloading modpack");
+
+        var archivePath = FileSystem.PathCombine(StagingPath, "pack.zip");
+        await TechnicDownload.ToFileAsync(_client, _sourceUrl, archivePath, md5: null, cancellationToken)
+            .ConfigureAwait(false);
+
+        SetStatus("Extracting modpack");
+
+        TechnicPackStager.StageAndBuild(
+            new InstancePaths(StagingPath), _runtimeContext, [archivePath], _instanceName, _minecraftVersion, _iconKey);
+
+        FileSystem.DeletePath(archivePath);
+    }
+}
+
+/// <summary>
+/// Resolves a Solder build's mod list, downloads every mod (each md5-checked), then layers them into
+/// the staging instance and builds it. Ported from technic/SolderPackInstallTask.
+/// </summary>
+public sealed class TechnicSolderInstallTask : LauncherTask, IInstanceTask
+{
+    private readonly string _solderUrl;
+
+    private readonly string _pack;
+
+    private readonly string _version;
+
+    private string _minecraftVersion;
+
+    private readonly RuntimeContext _runtimeContext;
+
+    private readonly HttpClient _client;
+
+    private readonly string _iconKey;
+
+    private readonly string _instanceName;
+
+    public TechnicSolderInstallTask(
+        string solderUrl,
+        string pack,
+        string version,
+        string minecraftVersion,
+        RuntimeContext runtimeContext,
+        HttpClient client,
+        string instanceName = "",
+        string iconKey = "default",
+        string group = "")
+        : base($"Installing modpack {instanceName}")
+    {
+        _solderUrl = solderUrl ?? throw new ArgumentNullException(nameof(solderUrl));
+        _pack = pack ?? throw new ArgumentNullException(nameof(pack));
+        _version = version ?? throw new ArgumentNullException(nameof(version));
+        _minecraftVersion = minecraftVersion ?? string.Empty;
+        _runtimeContext = runtimeContext;
+        _client = client ?? throw new ArgumentNullException(nameof(client));
+        _instanceName = instanceName;
+        _iconKey = iconKey;
+        Group = group;
+    }
+
+    public string StagingPath { get; set; } = string.Empty;
+
+    string IInstanceTask.Name => _instanceName;
+
+    public string Group { get; }
+
+    public bool ShouldOverride => false;
+
+    public string OriginalInstanceId => string.Empty;
+
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        if (StagingPath.Length == 0)
+        {
+            throw new LauncherException("No staging path was set.");
+        }
+
+        FileSystem.EnsureFolderPathExists(StagingPath);
+
+        SetStatus("Resolving modpack files");
+
+        var manifest = await _client
+            .GetByteArrayAsync(TechnicSolder.BuildUrl(_solderUrl, _pack, _version), cancellationToken)
+            .ConfigureAwait(false);
+
+        SolderPackBuild build;
+        try
+        {
+            build = TechnicSolder.LoadPackBuild(Json.RequireObject(Json.RequireDocument(manifest, "Solder build")));
+        }
+        catch (JsonException e)
+        {
+            throw new LauncherException($"Could not understand pack manifest:\n{e.Message}");
+        }
+
+        // A build names the Minecraft version the search could only guess at.
+        if (build.Minecraft.Length != 0)
+        {
+            _minecraftVersion = build.Minecraft;
+        }
+
+        SetStatus("Downloading modpack");
+
+        var archives = new List<string>(build.Mods.Count);
+
+        for (var i = 0; i < build.Mods.Count; i++)
+        {
+            var mod = build.Mods[i];
+            var path = FileSystem.PathCombine(StagingPath, $"{i}.zip");
+
+            await TechnicDownload.ToFileAsync(_client, mod.Url, path, mod.Md5, cancellationToken).ConfigureAwait(false);
+            archives.Add(path);
+        }
+
+        SetStatus("Extracting modpack");
+
+        TechnicPackStager.StageAndBuild(
+            new InstancePaths(StagingPath), _runtimeContext, archives, _instanceName, _minecraftVersion, _iconKey);
+
+        foreach (var archive in archives)
+        {
+            FileSystem.DeletePath(archive);
+        }
+    }
+}
+
+/// <summary>Downloads a file, and — when the source publishes one — checks its md5, all Solder offers.</summary>
+internal static class TechnicDownload
+{
+    public static async Task ToFileAsync(
+        HttpClient client, string url, string destination, string? md5, CancellationToken cancellationToken)
+    {
+        using (var response = await client
+                   .GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                   .ConfigureAwait(false))
+        {
+            response.EnsureSuccessStatusCode();
+
+            await using var output = File.Create(destination);
+            await response.Content.CopyToAsync(output, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (md5 is { Length: > 0 })
+        {
+            var actual = Convert.ToHexString(MD5.HashData(await File.ReadAllBytesAsync(destination, cancellationToken)
+                .ConfigureAwait(false)));
+
+            if (!string.Equals(actual, md5, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new LauncherException($"Checksum mismatch for {url}: expected {md5}, got {actual.ToLowerInvariant()}.");
+            }
+        }
     }
 }

@@ -81,6 +81,19 @@ public sealed class TechnicSolderTests
         => Assert.ThrowsAny<LauncherException>(() => TechnicSolder.LoadPackBuild(Parse("""
             { "minecraft": "1.7.10", "mods": [ { "name": "m", "url": "https://x.invalid/a.zip" } ] }
             """)));
+
+    [Fact]
+    public void ABuildUrlIsSolderPlusPackAndVersion()
+        => Assert.Equal(
+            "https://solder.example/api/modpack/tekkit/1.2.9",
+            TechnicSolder.BuildUrl("https://solder.example/api", "tekkit", "1.2.9"));
+
+    /// <summary>A base URL recorded with a trailing slash gives the same result as one without.</summary>
+    [Fact]
+    public void ABuildUrlTrimsTheBaseTrailingSlash()
+        => Assert.Equal(
+            "https://solder.example/api/modpack/tekkit/1.2.9",
+            TechnicSolder.BuildUrl("https://solder.example/api/", "tekkit", "1.2.9"));
 }
 
 public sealed class TechnicVersionJsonTests

@@ -72,6 +72,18 @@ public sealed class SolderPackBuild
 
 public static class TechnicSolder
 {
+    /// <summary>
+    /// The URL of a Solder build document — the mod list for one build of one pack. Upstream formats
+    /// this as <c>{solderUrl}/modpack/{pack}/{version}</c>; the base URL's trailing slash is trimmed so
+    /// a base recorded with or without one gives the same result.
+    /// </summary>
+    public static string BuildUrl(string solderUrl, string pack, string version)
+    {
+        ArgumentNullException.ThrowIfNull(solderUrl);
+
+        return $"{solderUrl.TrimEnd('/')}/modpack/{pack}/{version}";
+    }
+
     /// <summary>Reads a Solder pack document.</summary>
     public static SolderPack LoadPack(JsonObject obj)
     {
