@@ -123,7 +123,10 @@ public sealed class InstanceWindowTests : IDisposable
     }
 
     private static Button Button(Visual root, string content)
-        => root.GetLogicalDescendants().OfType<Button>().Single(b => b.Content as string == content);
+        => root.GetLogicalDescendants()
+            .OfType<Button>()
+            .Single(b => (b.Content as string) == content
+                         || b.GetLogicalDescendants().OfType<TextBlock>().Any(t => t.Text == content));
 
     private static IReadOnlyList<string?> Texts(Visual root)
         => root.GetLogicalDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
