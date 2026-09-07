@@ -74,7 +74,21 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**376 of 758 files. 3,327 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**377 of 758 files. 3,351 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **External tools — MCEdit and profilers (wave 84).** Ported the pure core of
+> `tools/{MCEditTool,JProfiler,JVisualVM,GenericProfiler}` to `Launch/ExternalTools.cs`. Upstream wraps
+> each tool in a QObject owning a QProcess and talking over signals; that is glue. What is worth porting
+> and can be tested without launching a profiler is pure: `McEditTool.Check` (does a directory look like
+> an MCEdit install — the OS-independent marker set) and `GetProgramPath` (the runnable file for the OS:
+> the .app bundle on macOS, mcedit.sh/.py on Linux, mcedit.exe/mcedit2.exe on Windows);
+> `JProfilerTool.Check` (bin + jprofiler[.exe] + agent.jar), `ProgramPath` (bin/jpenable[.exe]), and
+> `BuildArguments` (`-d {pid} --gui -p {port}`); `JVisualVmTool.Check` (an executable whose name contains
+> "visualvm", with QFileInfo::isExecutable reproduced as extension-on-Windows / execute-bit-on-Unix) and
+> `BuildArguments` (`--openpid {pid}`). The OS resolvers take a `ToolPlatform` (defaulting to the host)
+> so a Windows test can check the Linux resolution and vice versa. GenericProfiler carries no logic
+> beyond a status string and was not given a class. 24 tests. The process launching and settings
+> plumbing stay with the runtime that calls these.
 
 > **ATLauncher parsing layer completed (wave 83).** A prior wave ported the ATLauncher *mod chooser*
 > (`AtlPackManifest`: mod/loader/library parsing, `GetDefaultSelection`, `ResolveDependencies`); this
