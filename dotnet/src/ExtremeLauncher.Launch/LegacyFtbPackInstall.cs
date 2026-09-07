@@ -43,7 +43,12 @@ public static class LegacyFtbPackBuilder
     /// matching upstream's "No installation method found".
     /// </summary>
     public static void BuildFromArchive(
-        InstancePaths paths, string archivePath, LegacyFtbModpack pack, RuntimeContext runtimeContext, string iconKey = "default")
+        InstancePaths paths,
+        string archivePath,
+        LegacyFtbModpack pack,
+        RuntimeContext runtimeContext,
+        string iconKey = "default",
+        string? displayName = null)
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(pack);
@@ -109,7 +114,7 @@ public static class LegacyFtbPackBuilder
         settings.RegisterSetting("iconKey", "default");
         settings.RegisterSetting("InstanceType", string.Empty);
         settings.Set("InstanceType", "OneSix");
-        settings.Set("name", pack.Name);
+        settings.Set("name", displayName is { Length: > 0 } ? displayName : pack.Name);
 
         // The FTB logo stands in for the default icon, as upstream substitutes.
         settings.Set("iconKey", iconKey == "default" ? "ftb_logo" : iconKey);
@@ -131,11 +136,14 @@ public sealed class LegacyFtbPackInstallTask : LauncherTask, IInstanceTask
 
     private readonly string _iconKey;
 
+    private readonly string _instanceName;
+
     public LegacyFtbPackInstallTask(
         LegacyFtbModpack pack,
         string version,
         RuntimeContext runtimeContext,
         HttpClient client,
+        string instanceName = "",
         string? baseUrl = null,
         string iconKey = "default",
         string group = "")
@@ -145,6 +153,7 @@ public sealed class LegacyFtbPackInstallTask : LauncherTask, IInstanceTask
         _version = version ?? throw new ArgumentNullException(nameof(version));
         _runtimeContext = runtimeContext;
         _client = client ?? throw new ArgumentNullException(nameof(client));
+        _instanceName = instanceName;
         _baseUrl = baseUrl;
         _iconKey = iconKey;
         Group = group;
@@ -152,7 +161,7 @@ public sealed class LegacyFtbPackInstallTask : LauncherTask, IInstanceTask
 
     public string StagingPath { get; set; } = string.Empty;
 
-    string IInstanceTask.Name => _pack.Name;
+    string IInstanceTask.Name => _instanceName.Length != 0 ? _instanceName : _pack.Name;
 
     public string Group { get; }
 
@@ -187,7 +196,7 @@ public sealed class LegacyFtbPackInstallTask : LauncherTask, IInstanceTask
         SetStatus($"Installing {_pack.Name}");
 
         LegacyFtbPackBuilder.BuildFromArchive(
-            new InstancePaths(StagingPath), archivePath, _pack, _runtimeContext, _iconKey);
+            new InstancePaths(StagingPath), archivePath, _pack, _runtimeContext, _iconKey, _instanceName);
 
         FileSystem.DeletePath(archivePath);
     }
