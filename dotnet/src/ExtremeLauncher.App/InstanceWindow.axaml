@@ -41,13 +41,23 @@
             BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
             Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
       <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
-        <Button Content="Launch"
+        <Button
                 Classes="hero"
                 Command="{Binding LaunchCommand}"
-                IsEnabled="{Binding CanLaunch}" />
-        <Button Content="Kill"
+                IsEnabled="{Binding CanLaunch}" ToolTip.Tip="Launch">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <PathIcon Classes="tbi" Data="{StaticResource IconLaunch}" />
+            <TextBlock Text="Launch" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+        <Button
                 Command="{Binding KillCommand}"
-                IsEnabled="{Binding CanKill}" />
+                IsEnabled="{Binding CanKill}" ToolTip.Tip="Kill">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <PathIcon Classes="tbi" Data="{StaticResource IconKill}" />
+            <TextBlock Text="Kill" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
       </StackPanel>
     </Border>
 
@@ -116,24 +126,48 @@
             <WrapPanel DockPanel.Dock="Top" Classes="toolbar" Margin="0,0,0,8">
               <!-- Every button binds its enabled state to the view model. Upstream re-derives these by
                    hand in updateButtons(), from six call sites. -->
-              <Button Content="Remove"
+              <Button
                       Command="{Binding RemoveSelectedCommand}"
-                      IsEnabled="{Binding CanRemove}" />
-              <Button Content="Move up"
+                      IsEnabled="{Binding CanRemove}" ToolTip.Tip="Remove">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconDelete}" />
+                  <TextBlock Text="Remove" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button
                       Command="{Binding MoveSelectedUpCommand}"
-                      IsEnabled="{Binding CanMoveUp}" />
-              <Button Content="Move down"
+                      IsEnabled="{Binding CanMoveUp}" ToolTip.Tip="Move up">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconUp}" />
+                  <TextBlock Text="Move up" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button
                       Command="{Binding MoveSelectedDownCommand}"
-                      IsEnabled="{Binding CanMoveDown}" />
+                      IsEnabled="{Binding CanMoveDown}" ToolTip.Tip="Move down">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconDown}" />
+                  <TextBlock Text="Move down" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
-              <Button Content="Change version"
+              <Button
                       Command="{Binding ChangeVersionCommand}"
-                      IsEnabled="{Binding CanPickVersion}" />
+                      IsEnabled="{Binding CanPickVersion}" ToolTip.Tip="Change version">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconSwap}" />
+                  <TextBlock Text="Change version" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- Add loader: upstream's InstallLoaderDialog, which is a uid picker in front of the
                    same version list. A menu rather than a dialog, because there are exactly four and
                    naming them is faster than a second window to choose between them. -->
-              <Button Content="Add loader" IsEnabled="{Binding CanAddLoader}">
+              <Button IsEnabled="{Binding CanAddLoader}" ToolTip.Tip="Add loader">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconNew}" />
+                  <TextBlock Text="Add loader" VerticalAlignment="Center" />
+                </StackPanel>
                 <Button.Flyout>
                   <MenuFlyout>
                     <MenuItem Header="Fabric"
@@ -153,19 +187,39 @@
               </Button>
 
               <!-- A blank hand-made component, for a jar mod or tweak with no metadata. -->
-              <Button Content="Add empty"
+              <Button
                       Command="{Binding AddEmptyCommand}"
-                      IsEnabled="{Binding CanAddEmpty}" />
+                      IsEnabled="{Binding CanAddEmpty}" ToolTip.Tip="Add empty">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconNew}" />
+                  <TextBlock Text="Add empty" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
-              <Button Content="Reload" Command="{Binding ReloadCommand}" />
+              <Button Command="{Binding ReloadCommand}" ToolTip.Tip="Reload">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconRefresh}" />
+                  <TextBlock Text="Reload" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- The instance's own folders, for when a fix has to be made by hand. -->
-              <Button Content="Minecraft folder"
+              <Button
                       Command="{Binding OpenMinecraftFolderCommand}"
-                      IsEnabled="{Binding CanOpenMinecraftFolder}" />
-              <Button Content="Libraries folder"
+                      IsEnabled="{Binding CanOpenMinecraftFolder}" ToolTip.Tip="Minecraft folder">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconFolders}" />
+                  <TextBlock Text="Minecraft folder" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button
                       Command="{Binding OpenLibrariesFolderCommand}"
-                      IsEnabled="{Binding CanOpenLibrariesFolder}" />
+                      IsEnabled="{Binding CanOpenLibrariesFolder}" ToolTip.Tip="Libraries folder">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconFolders}" />
+                  <TextBlock Text="Libraries folder" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
             </WrapPanel>
 
             <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
@@ -219,7 +273,12 @@
                        IsVisible="{Binding HasOptions}" />
 
               <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasOptions}">
-                <Button Content="Reload" Command="{Binding ReloadCommand}" />
+                <Button Command="{Binding ReloadCommand}" ToolTip.Tip="Reload">
+                  <StackPanel Orientation="Horizontal" Spacing="7">
+                    <PathIcon Classes="tbi" Data="{StaticResource IconRefresh}" />
+                    <TextBlock Text="Reload" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
                 <TextBlock VerticalAlignment="Center" FontSize="11"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                            Text="{Binding FormatVersion, StringFormat='options.txt format version {0}'}" />
@@ -264,37 +323,69 @@
             <WrapPanel DockPanel.Dock="Top" Classes="toolbar" Margin="0,0,0,8">
               <!-- One button whose label says what will HAPPEN, rather than two, or one naming the
                    current state. "Enabled" is ambiguous about which way it goes. -->
-              <Button Content="{Binding ToggleLabel}"
-                      Command="{Binding ToggleSelectedCommand}"
-                      IsEnabled="{Binding HasSelection}" />
-              <Button Content="Remove"
+              <Button Command="{Binding ToggleSelectedCommand}"
+                      IsEnabled="{Binding HasSelection}">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconPower}" />
+                  <TextBlock Text="{Binding ToggleLabel}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button
                       Command="{Binding DeleteSelectedCommand}"
-                      IsEnabled="{Binding HasSelection}" />
-              <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+                      IsEnabled="{Binding HasSelection}" ToolTip.Tip="Remove">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconDelete}" />
+                  <TextBlock Text="Remove" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button Command="{Binding RefreshCommand}" ToolTip.Tip="Refresh">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconRefresh}" />
+                  <TextBlock Text="Refresh" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- Opens this page's folder in the file manager, creating it first if need be. -->
-              <Button Content="View folder"
+              <Button
                       Command="{Binding OpenFolderCommand}"
-                      IsEnabled="{Binding CanOpenFolder}" />
+                      IsEnabled="{Binding CanOpenFolder}" ToolTip.Tip="View folder">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconFolders}" />
+                  <TextBlock Text="View folder" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- The reason this page exists. Needs no selection: you download a mod you do not
                    have yet, so requiring one would be requiring the wrong thing. -->
-              <Button Content="{Binding AddLabel}"
-                      Command="{Binding AddCommand}"
-                      IsEnabled="{Binding CanAdd}" />
+              <Button Command="{Binding AddCommand}" IsEnabled="{Binding CanAdd}">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconNew}" />
+                  <TextBlock Text="{Binding AddLabel}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- Writing down what is installed, for a forum post or the friend who asked. Mods
                    only: a resource-pack list is not a thing anybody shares. -->
-              <Button Content="Export list"
+              <Button
                       Command="{Binding ExportListCommand}"
-                      IsEnabled="{Binding CanExportList}" />
+                      IsEnabled="{Binding CanExportList}" ToolTip.Tip="Export list">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconExport}" />
+                  <TextBlock Text="Export list" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- Only on the mods page: resource packs carry no version metadata to compare, so
                    the button is absent there rather than present and always saying "nothing to do". -->
-              <Button Content="Check for updates"
+              <Button
                       Command="{Binding CheckUpdatesCommand}"
                       IsEnabled="{Binding CanCheckUpdates}"
-                      IsVisible="{Binding CanCheckUpdates}" />
+                      IsVisible="{Binding CanCheckUpdates}" ToolTip.Tip="Check for updates">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconRefresh}" />
+                  <TextBlock Text="Check for updates" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
             </WrapPanel>
 
             <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
@@ -332,46 +423,91 @@
 
             <WrapPanel DockPanel.Dock="Top" Classes="toolbar" Margin="0,0,0,8">
               <!-- Import a world zip (or .mcworld). Named after the world inside, not the file. -->
-              <Button Content="Add"
+              <Button
                       Command="{Binding AddCommand}"
-                      IsEnabled="{Binding CanAdd}" />
+                      IsEnabled="{Binding CanAdd}" ToolTip.Tip="Add">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconNew}" />
+                  <TextBlock Text="Add" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
-              <Button Content="Rename"
+              <Button
                       Command="{Binding RenameSelectedCommand}"
-                      IsEnabled="{Binding CanRename}" />
+                      IsEnabled="{Binding CanRename}" ToolTip.Tip="Rename">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconEdit}" />
+                  <TextBlock Text="Rename" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- The safe way to experiment with a save: copy it, then break the copy. Needs a
                    world whose level.dat parses, because the copy's name is written into it. -->
-              <Button Content="Copy"
+              <Button
                       Command="{Binding CopySelectedCommand}"
-                      IsEnabled="{Binding CanCopy}" />
+                      IsEnabled="{Binding CanCopy}" ToolTip.Tip="Copy">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconCopy}" />
+                  <TextBlock Text="Copy" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- The seed as a bare number, for sharing or re-creating the world. Needs a parseable
                    level.dat, which is where the number lives. -->
-              <Button Content="Copy seed"
+              <Button
                       Command="{Binding CopySeedSelectedCommand}"
-                      IsEnabled="{Binding CanCopySeed}" />
+                      IsEnabled="{Binding CanCopySeed}" ToolTip.Tip="Copy seed">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconCopy}" />
+                  <TextBlock Text="Copy seed" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
-              <Button Content="Delete"
+              <Button
                       Command="{Binding DeleteSelectedCommand}"
-                      IsEnabled="{Binding HasSelection}" />
+                      IsEnabled="{Binding HasSelection}" ToolTip.Tip="Delete">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconDelete}" />
+                  <TextBlock Text="Delete" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- Datapacks live inside the world; this opens that world's own datapacks folder. -->
-              <Button Content="Datapacks"
+              <Button
                       Command="{Binding OpenDatapacksSelectedCommand}"
-                      IsEnabled="{Binding CanOpenDatapacks}" />
+                      IsEnabled="{Binding CanOpenDatapacks}" ToolTip.Tip="Datapacks">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconFolders}" />
+                  <TextBlock Text="Datapacks" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- Removes the world's icon so the game redraws it. Off when there is no icon. -->
-              <Button Content="Reset icon"
+              <Button
                       Command="{Binding ResetIconSelectedCommand}"
-                      IsEnabled="{Binding CanResetIcon}" />
+                      IsEnabled="{Binding CanResetIcon}" ToolTip.Tip="Reset icon">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconRefresh}" />
+                  <TextBlock Text="Reset icon" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
-              <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+              <Button Command="{Binding RefreshCommand}" ToolTip.Tip="Refresh">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconRefresh}" />
+                  <TextBlock Text="Refresh" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- Opens the saves folder in the file manager. -->
-              <Button Content="View folder"
+              <Button
                       Command="{Binding OpenFolderCommand}"
-                      IsEnabled="{Binding CanOpenFolder}" />
+                      IsEnabled="{Binding CanOpenFolder}" ToolTip.Tip="View folder">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconFolders}" />
+                  <TextBlock Text="View folder" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
             </WrapPanel>
 
             <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
@@ -411,13 +547,23 @@
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,6">
               <!-- Somebody is on this page because they are about to paste it into a bug report.
                    Selecting five thousand lines by dragging is not a way to do that. -->
-              <Button Content="Copy log" Command="{Binding CopyCommand}" />
+              <Button Command="{Binding CopyCommand}" ToolTip.Tip="Copy log">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconCopy}" />
+                  <TextBlock Text="Copy log" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- The more useful of the two upload buttons: this is the log of the launch that just
                    went wrong, which is the one somebody has open when they decide to ask for help. -->
-              <Button Content="Upload log" Command="{Binding UploadCommand}"
+              <Button Command="{Binding UploadCommand}"
                       IsVisible="{Binding CanUpload}"
-                      ToolTip.Tip="Upload this log to the paste service set in the launcher's settings." />
+                      ToolTip.Tip="Upload this log to the paste service set in the launcher's settings.">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconUpload}" />
+                  <TextBlock Text="Upload log" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
               <TextBlock Text="{Binding CopyStatus}" VerticalAlignment="Center"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             </StackPanel>
@@ -430,8 +576,18 @@
                   <KeyBinding Gesture="Enter" Command="{Binding FindNextCommand}" />
                 </TextBox.KeyBindings>
               </TextBox>
-              <Button Content="Previous" Command="{Binding FindPreviousCommand}" IsEnabled="{Binding CanFind}" />
-              <Button Content="Next" Command="{Binding FindNextCommand}" IsEnabled="{Binding CanFind}" />
+              <Button Command="{Binding FindPreviousCommand}" IsEnabled="{Binding CanFind}" ToolTip.Tip="Previous">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconPrev}" />
+                  <TextBlock Text="Previous" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button Command="{Binding FindNextCommand}" IsEnabled="{Binding CanFind}" ToolTip.Tip="Next">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconNext}" />
+                  <TextBlock Text="Next" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
               <TextBlock Text="{Binding MatchSummary}" VerticalAlignment="Center"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             </StackPanel>
@@ -473,21 +629,46 @@
                 </ComboBox.ItemTemplate>
               </ComboBox>
 
-              <Button Content="Refresh" Command="{Binding RefreshCommand}" />
-              <Button Content="Copy" Command="{Binding CopyCommand}" />
-              <Button Content="Delete"
+              <Button Command="{Binding RefreshCommand}" ToolTip.Tip="Refresh">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconRefresh}" />
+                  <TextBlock Text="Refresh" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button Command="{Binding CopyCommand}" ToolTip.Tip="Copy">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconCopy}" />
+                  <TextBlock Text="Copy" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button
                       Command="{Binding DeleteSelectedCommand}"
-                      IsEnabled="{Binding CanDelete}" />
-              <Button Content="Clean"
+                      IsEnabled="{Binding CanDelete}" ToolTip.Tip="Delete">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconDelete}" />
+                  <TextBlock Text="Delete" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button
                       Command="{Binding CleanCommand}"
                       IsEnabled="{Binding CanClean}"
-                      ToolTip.Tip="Delete every log file in this instance." />
+                      ToolTip.Tip="Delete every log file in this instance.">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconClean}" />
+                  <TextBlock Text="Clean" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- Hidden rather than disabled when there is nowhere to upload to: a permanently
                    greyed button is a question nobody can answer. -->
-              <Button Content="Upload" Command="{Binding UploadCommand}"
+              <Button Command="{Binding UploadCommand}"
                       IsVisible="{Binding CanUpload}"
-                      ToolTip.Tip="Upload this log to the paste service set in the launcher's settings." />
+                      ToolTip.Tip="Upload this log to the paste service set in the launcher's settings.">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconUpload}" />
+                  <TextBlock Text="Upload" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
               <TextBlock Text="{Binding CopyStatus}" VerticalAlignment="Center"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             </WrapPanel>
@@ -512,31 +693,61 @@
           <DockPanel>
 
             <WrapPanel DockPanel.Dock="Top" Classes="toolbar" Margin="0,0,0,8">
-              <Button Content="Rename"
+              <Button
                       Command="{Binding RenameSelectedCommand}"
-                      IsEnabled="{Binding HasSelection}" />
-              <Button Content="Delete"
+                      IsEnabled="{Binding HasSelection}" ToolTip.Tip="Rename">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconEdit}" />
+                  <TextBlock Text="Rename" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button
                       Command="{Binding DeleteSelectedCommand}"
-                      IsEnabled="{Binding HasSelection}" />
+                      IsEnabled="{Binding HasSelection}" ToolTip.Tip="Delete">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconDelete}" />
+                  <TextBlock Text="Delete" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- The file's location, for pasting into an upload dialog or a terminal. -->
-              <Button Content="Copy path"
+              <Button
                       Command="{Binding CopyPathSelectedCommand}"
-                      IsEnabled="{Binding CanCopyPath}" />
+                      IsEnabled="{Binding CanCopyPath}" ToolTip.Tip="Copy path">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconCopy}" />
+                  <TextBlock Text="Copy path" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- Hidden, not disabled, when this build has no image host configured: a permanently
                    greyed Upload is a question nobody can answer. -->
-              <Button Content="Upload"
+              <Button
                       Command="{Binding UploadSelectedCommand}"
                       IsVisible="{Binding CanUpload}"
-                      ToolTip.Tip="Upload the selected screenshot and copy a shareable link." />
+                      ToolTip.Tip="Upload the selected screenshot and copy a shareable link.">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconUpload}" />
+                  <TextBlock Text="Upload" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
-              <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+              <Button Command="{Binding RefreshCommand}" ToolTip.Tip="Refresh">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconRefresh}" />
+                  <TextBlock Text="Refresh" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- Opens the screenshots folder in the file manager. -->
-              <Button Content="View folder"
+              <Button
                       Command="{Binding OpenFolderCommand}"
-                      IsEnabled="{Binding CanOpenFolder}" />
+                      IsEnabled="{Binding CanOpenFolder}" ToolTip.Tip="View folder">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconFolders}" />
+                  <TextBlock Text="View folder" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
             </WrapPanel>
 
             <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
@@ -570,18 +781,48 @@
 
             <WrapPanel DockPanel.Dock="Top" Classes="toolbar" Margin="0,0,0,8">
               <!-- Launches the instance straight into this server, through the window's own coordinator. -->
-              <Button Content="Join"
+              <Button
                       Command="{Binding JoinSelectedCommand}"
-                      IsEnabled="{Binding CanJoin}" />
+                      IsEnabled="{Binding CanJoin}" ToolTip.Tip="Join">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconLaunch}" />
+                  <TextBlock Text="Join" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
-              <Button Content="Add" Command="{Binding AddCommand}" IsEnabled="{Binding CanAdd}" />
-              <Button Content="Remove" Command="{Binding RemoveCommand}" IsEnabled="{Binding CanRemove}" />
-              <Button Content="Move up" Command="{Binding MoveUpCommand}" IsEnabled="{Binding CanMoveUp}" />
-              <Button Content="Move down" Command="{Binding MoveDownCommand}" IsEnabled="{Binding CanMoveDown}" />
+              <Button Command="{Binding AddCommand}" IsEnabled="{Binding CanAdd}" ToolTip.Tip="Add">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconNew}" />
+                  <TextBlock Text="Add" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button Command="{Binding RemoveCommand}" IsEnabled="{Binding CanRemove}" ToolTip.Tip="Remove">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconDelete}" />
+                  <TextBlock Text="Remove" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button Command="{Binding MoveUpCommand}" IsEnabled="{Binding CanMoveUp}" ToolTip.Tip="Move up">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconUp}" />
+                  <TextBlock Text="Move up" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button Command="{Binding MoveDownCommand}" IsEnabled="{Binding CanMoveDown}" ToolTip.Tip="Move down">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconDown}" />
+                  <TextBlock Text="Move down" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
 
               <!-- The game rewrites this file when it exits, so re-reading it is a normal thing to
                    want rather than a debugging aid. -->
-              <Button Content="Refresh" Command="{Binding RefreshCommand}" Margin="12,2,6,2" />
+              <Button Command="{Binding RefreshCommand}" Margin="12,2,6,2" ToolTip.Tip="Refresh">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <PathIcon Classes="tbi" Data="{StaticResource IconRefresh}" />
+                  <TextBlock Text="Refresh" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
             </WrapPanel>
 
             <!-- Why the page will not be edited, when it will not: the game is running, or the file
