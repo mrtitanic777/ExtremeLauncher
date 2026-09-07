@@ -20,10 +20,30 @@
  */
 
 using Avalonia.Controls;
+using Avalonia.Input;
 
 namespace ExtremeLauncher.App;
 
 public partial class MainWindow : Window
 {
     public MainWindow() => InitializeComponent();
+
+    // The one piece of view logic this window needs: the custom title bar is our own control, so it
+    // has to start the window move itself (and maximise/restore on a double click), which the OS bar
+    // would have done for free. Kept here rather than in the view model because it is pure windowing.
+    private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        if (e.ClickCount == 2)
+        {
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+            return;
+        }
+
+        BeginMoveDrag(e);
+    }
 }
