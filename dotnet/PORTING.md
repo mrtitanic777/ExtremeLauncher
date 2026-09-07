@@ -74,7 +74,15 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**369 of 758 files. 3,278 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**370 of 758 files. 3,286 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Legacy FTB fetch/parse (wave 76).** Ported `modplatform/legacy_ftb/PackFetchTask` +
+> `PackHelpers.h` to `ModPlatform/LegacyFtb.cs`: the models, the pack-list XML parser (with upstream's
+> quirks — the ";"-separated version list, the "bugged" flag an empty entry raises, the current-version
+> fallback and the "broken" flag), and a `LegacyFtbPackSource` that fetches the public/third-party/
+> private lists from the FTB CDN. 8 tests (no upstream unit test exists), including a live probe that
+> **passed against the real `dist.creeper.host/FTB2` CDN**. This is the discoverability half; installing
+> a legacy pack (download + unpack the archive into an instance) and the browser UI are a follow-up.
 
 > **CatPack (wave 75).** Ported `ui/themes/CatPack.cpp`'s `JsonCatPack` date-selection to
 > `Core/CatPack.cs`, test-first against the shared `tests/testdata/CatPacks/index.json` — 13 tests, all
