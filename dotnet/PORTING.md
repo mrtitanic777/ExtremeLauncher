@@ -74,7 +74,16 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**370 of 758 files. 3,286 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**370 of 758 files. 3,295 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Legacy FTB install helpers + private packs (wave 77).** Ported the pure, bug-prone half of
+> `legacy_ftb/PackInstallTask` and all of `PrivatePackManager` into `ModPlatform/LegacyFtb.cs`:
+> `LegacyFtbInstall.ArchiveUrl` (the `{dir}/{version→underscores}/{file}` CDN layout under
+> `modpacks/` vs `privatepacks/`), `LegacyFtbInstall.ForgeComponentVersion` (reads the Forge coordinate
+> out of an old `pack.json` and strips the MC version and dashes), and `LegacyFtbPrivatePacks`
+> (line-per-code persistence, save-only-when-dirty). 9 more tests. The stateful remainder — download +
+> unzip into a staging instance, and the jarmod fallback — waits on `PackProfile.InstallJarMods`, which
+> is unported (MinecraftInstance I/O); the Forge path needs only the ported `SetComponentVersion`.
 
 > **Legacy FTB fetch/parse (wave 76).** Ported `modplatform/legacy_ftb/PackFetchTask` +
 > `PackHelpers.h` to `ModPlatform/LegacyFtb.cs`: the models, the pack-list XML parser (with upstream's

@@ -132,6 +132,104 @@ public sealed class LegacyFtbTests
         Assert.Empty(packs);
     }
 
+    // ================================================================== install helpers
+
+    [Theory]
+    [InlineData(LegacyFtbPackType.Public, "modpacks/")]
+    [InlineData(LegacyFtbPackType.ThirdParty, "modpacks/")]
+    [InlineData(LegacyFtbPackType.Private, "privatepacks/")]
+    public void TheArchiveUrlPutsDotsToUnderscoresUnderTheRightFolder(LegacyFtbPackType type, string folder)
+    {
+        var pack = new LegacyFtbModpack { Dir = "dw20", File = "Direwolf20.zip", Type = type };
+
+        Assert.Equal(
+            $"https://cdn.example/{folder}dw20/1_12_2/Direwolf20.zip",
+            LegacyFtbInstall.ArchiveUrl(pack, "1.12.2", "https://cdn.example/"));
+    }
+
+    [Fact]
+    public void AForgePackJsonYieldsItsLoaderVersion()
+    {
+        // The Minecraft version and the dashes are stripped out of the Forge coordinate.
+        var packJson =
+            """
+            { "libraries": [
+                { "name": "net.minecraft:launchwrapper:1.12" },
+                { "name": "net.minecraftforge:forge:1.20.1-47.1.0" }
+            ] }
+            """;
+
+        Assert.Equal("47.1.0", LegacyFtbInstall.ForgeComponentVersion(packJson, "1.20.1"));
+    }
+
+    [Fact]
+    public void ANonForgePackJsonHasNoLoaderVersion()
+    {
+        Assert.Null(LegacyFtbInstall.ForgeComponentVersion(
+            """{ "libraries": [ { "name": "net.minecraft:launchwrapper:1.12" } ] }""", "1.12"));
+    }
+
+    [Fact]
+    public void MalformedPackJsonHasNoLoaderVersion()
+    {
+        Assert.Null(LegacyFtbInstall.ForgeComponentVersion("{ not json", "1.20.1"));
+    }
+
+    // ================================================================== private pack codes
+
+    [Fact]
+    public void PrivatePackCodesRoundTripThroughTheFile()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "el-ftb-" + Guid.NewGuid().ToString("N") + ".txt");
+        try
+        {
+            var packs = new LegacyFtbPrivatePacks(path);
+            Assert.True(packs.IsEmpty);
+
+            packs.Add("ALPHA");
+            packs.Add("BETA");
+            packs.Save();
+
+            var reloaded = new LegacyFtbPrivatePacks(path);
+            reloaded.Load();
+
+            Assert.Equal(["ALPHA", "BETA"], reloaded.Codes);
+            Assert.False(reloaded.IsEmpty);
+
+            reloaded.Remove("ALPHA");
+            reloaded.Save();
+
+            var again = new LegacyFtbPrivatePacks(path);
+            again.Load();
+            Assert.Equal(["BETA"], again.Codes);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void LoadingAMissingFileIsEmptyRatherThanAnError()
+    {
+        var packs = new LegacyFtbPrivatePacks(Path.Combine(Path.GetTempPath(), "el-ftb-missing-" + Guid.NewGuid().ToString("N")));
+
+        packs.Load();
+
+        Assert.True(packs.IsEmpty);
+    }
+
+    [Fact]
+    public void SaveWithNothingChangedWritesNoFile()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "el-ftb-" + Guid.NewGuid().ToString("N") + ".txt");
+
+        // Nothing added since construction, so a clean set must not create the file.
+        new LegacyFtbPrivatePacks(path).Save();
+
+        Assert.False(File.Exists(path));
+    }
+
     [SkippableFact]
     public async Task TheLiveFtbListParsesIfTheCdnIsReachable()
     {

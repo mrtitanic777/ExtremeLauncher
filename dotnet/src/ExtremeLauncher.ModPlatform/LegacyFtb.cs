@@ -27,9 +27,11 @@
  * to its current version, or is flagged "broken" if it has none.
  */
 
+using System.Text.Json.Nodes;
 using System.Xml;
 using System.Xml.Linq;
 using ExtremeLauncher.Core;
+using ExtremeLauncher.Minecraft;
 
 namespace ExtremeLauncher.ModPlatform;
 
@@ -219,5 +221,153 @@ public sealed class LegacyFtbPackSource
         var ok = LegacyFtbPackParser.TryParse(xml, type, out var packs);
 
         return (packs, ok);
+    }
+}
+
+/// <summary>
+/// The set of private FTB pack codes the user has added, persisted one per line, ported from
+/// legacy_ftb/PrivatePackManager.
+/// </summary>
+public sealed class LegacyFtbPrivatePacks
+{
+    private readonly string _filePath;
+
+    private readonly HashSet<string> _codes = [];
+
+    private bool _dirty;
+
+    /// <param name="filePath">Where the codes are stored; upstream uses <c>private_packs.txt</c>.</param>
+    public LegacyFtbPrivatePacks(string filePath)
+        => _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
+
+    public bool IsEmpty => _codes.Count == 0;
+
+    /// <summary>The codes, sorted for a stable order (the set itself is unordered, as upstream's is).</summary>
+    public IReadOnlyList<string> Codes => _codes.OrderBy(c => c, StringComparer.Ordinal).ToList();
+
+    /// <summary>Reads the codes from disk. A missing or unreadable file leaves the set empty, not an error.</summary>
+    public void Load()
+    {
+        try
+        {
+            _codes.Clear();
+
+            foreach (var line in File.ReadAllText(_filePath).Split('\n'))
+            {
+                if (line.Length != 0)
+                {
+                    _codes.Add(line);
+                }
+            }
+
+            _dirty = false;
+        }
+        catch (IOException)
+        {
+            _codes.Clear();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _codes.Clear();
+        }
+    }
+
+    /// <summary>Writes the codes back, but only when something changed since the last load or save.</summary>
+    public void Save()
+    {
+        if (!_dirty)
+        {
+            return;
+        }
+
+        File.WriteAllText(_filePath, string.Join('\n', Codes));
+        _dirty = false;
+    }
+
+    public void Add(string code)
+    {
+        if (_codes.Add(code))
+        {
+            _dirty = true;
+        }
+    }
+
+    public void Remove(string code)
+    {
+        if (_codes.Remove(code))
+        {
+            _dirty = true;
+        }
+    }
+}
+
+/// <summary>The pure pieces of legacy_ftb/PackInstallTask: where a pack's archive lives, and how a
+/// Forge-based pack names its loader.</summary>
+public static class LegacyFtbInstall
+{
+    /// <summary>
+    /// The CDN URL of a pack's archive for a given version. Upstream lays it out as
+    /// <c>{dir}/{version with dots as underscores}/{file}</c> under <c>privatepacks/</c> for a private
+    /// pack or <c>modpacks/</c> for a public or third-party one.
+    /// </summary>
+    public static string ArchiveUrl(LegacyFtbModpack pack, string version, string? baseUrl = null)
+    {
+        ArgumentNullException.ThrowIfNull(pack);
+        ArgumentNullException.ThrowIfNull(version);
+
+        var root = baseUrl is { Length: > 0 } ? baseUrl : BuildConfig.Instance.LegacyFtbCdnBaseUrl;
+        var folder = pack.Type == LegacyFtbPackType.Private ? "privatepacks/" : "modpacks/";
+        var path = $"{pack.Dir}/{version.Replace(".", "_", StringComparison.Ordinal)}/{pack.File}";
+
+        return root + folder + path;
+    }
+
+    /// <summary>
+    /// The <c>net.minecraftforge</c> component version an old FTB <c>pack.json</c> implies, or null when
+    /// the pack is not Forge-based. Upstream reads the first library whose name is a Forge coordinate and
+    /// strips the Minecraft version and dashes out of it (e.g. <c>1.20.1-47.1.0</c> → <c>47.1.0</c>).
+    /// </summary>
+    public static string? ForgeComponentVersion(string packJson, string mcVersion)
+    {
+        ArgumentNullException.ThrowIfNull(packJson);
+
+        JsonNode? document;
+
+        try
+        {
+            document = JsonNode.Parse(packJson);
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return null;
+        }
+
+        if (document is not JsonObject root || root["libraries"] is not JsonArray libraries)
+        {
+            return null;
+        }
+
+        foreach (var library in libraries)
+        {
+            if (library is not JsonObject obj || obj["name"] is not JsonValue nameValue)
+            {
+                continue;
+            }
+
+            var name = nameValue.ToString();
+
+            if (!name.StartsWith("net.minecraftforge", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var forgeVersion = new GradleSpecifier(name).Version;
+
+            return forgeVersion
+                .Replace(mcVersion, string.Empty, StringComparison.Ordinal)
+                .Replace("-", string.Empty, StringComparison.Ordinal);
+        }
+
+        return null;
     }
 }
