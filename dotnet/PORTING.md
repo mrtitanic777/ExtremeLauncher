@@ -74,7 +74,20 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**375 of 758 files. 3,313 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**375 of 758 files. 3,318 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Technic install tasks (wave 82).** The download/extract front end for the wave-81 processor, ported
+> from `technic/SingleZipPackInstallTask` and `technic/SolderPackInstallTask`. `TechnicPackStager`
+> (`Launch/TechnicPackInstall.cs`) extracts one or more archives into `staging/minecraft` and calls the
+> builder — one archive for a single-zip pack, one per mod layered in order for a Solder pack (a later
+> archive winning where two collide, as upstream extracts them). `TechnicSingleZipInstallTask`
+> downloads one zip; `TechnicSolderInstallTask` resolves the Solder build document
+> (`TechnicSolder.BuildUrl` → `{solder}/modpack/{pack}/{version}`, now a pure helper), downloads every
+> mod md5-checked, and takes the build's own Minecraft version when it names one. Upstream's post-unzip
+> Unix `chmod` loop is dropped: .NET's extractor already writes user-readable/writable files. 5 tests —
+> the stager over hand-built archives (single, layered, missing) and the build-URL formatting (with and
+> without a trailing slash). This closes the Technic install path end to end: manifest → download →
+> extract → instance.
 
 > **Technic pack processor (wave 81).** Ported `technic/TechnicPackProcessor` to
 > `Launch/TechnicPackInstall.cs` as `TechnicPackBuilder.BuildFromStaging`: given a Technic pack already
