@@ -14,13 +14,19 @@
         x:DataType="vm:IconPickerViewModel"
         Title="Choose an icon"
         Width="560" Height="480"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppCanvasBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaTitleBarHeightHint="40">
 
   <Window.Resources>
     <app:IconImageConverter x:Key="IconImage" />
   </Window.Resources>
 
-  <DockPanel Margin="12">
+  <DockPanel>
+    <app:TitleBar DockPanel.Dock="Top" />
+    <DockPanel Margin="12">
 
     <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
       <Grid ColumnDefinitions="Auto,Auto,*,Auto">
@@ -76,5 +82,6 @@
         </ListBox.ItemTemplate>
       </ListBox>
     </ScrollViewer>
+  </DockPanel>
   </DockPanel>
 </Window>

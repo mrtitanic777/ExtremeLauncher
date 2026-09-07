@@ -12,6 +12,7 @@
 -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="using:ExtremeLauncher.App"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:ExtremeLauncher.ViewModels"
@@ -20,9 +21,15 @@
         x:DataType="vm:GlobalSettingsViewModel"
         Title="Settings"
         Width="620" Height="620"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppCanvasBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaTitleBarHeightHint="40">
 
-  <DockPanel Margin="12">
+  <DockPanel>
+    <app:TitleBar DockPanel.Dock="Top" />
+    <DockPanel Margin="12">
 
     <!-- The buttons, docked so they never scroll away. Cancel is the DEFAULT, as in every other
          dialog in this launcher: Return must not commit settings somebody was still reading. -->
@@ -120,5 +127,6 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
     </ScrollViewer>
+  </DockPanel>
   </DockPanel>
 </Window>

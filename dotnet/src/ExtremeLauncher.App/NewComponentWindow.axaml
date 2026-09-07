@@ -5,6 +5,7 @@
 -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="using:ExtremeLauncher.App"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:ExtremeLauncher.ViewModels"
@@ -13,9 +14,15 @@
         x:DataType="vm:NewComponentViewModel"
         Title="New component"
         Width="420" SizeToContent="Height"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppCanvasBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaTitleBarHeightHint="40">
 
-  <StackPanel Margin="16" Spacing="8">
+  <DockPanel>
+    <app:TitleBar DockPanel.Dock="Top" />
+    <StackPanel Margin="16" Spacing="8">
     <TextBlock Classes="field-label" Text="Name" />
     <TextBox Text="{Binding Name}" Watermark="What the version page shows" />
 
@@ -33,4 +40,5 @@
               IsEnabled="{Binding CanCreate}" IsDefault="True" />
     </StackPanel>
   </StackPanel>
+  </DockPanel>
 </Window>

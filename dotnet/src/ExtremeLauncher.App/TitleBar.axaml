@@ -1,0 +1,20 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  A reusable dark title bar. Windows here extend their client area to the decorations so the frame is
+  dark to the very top edge (the OS caption is drawn light/accent-coloured and cannot be themed while
+  the user has "accent colour on title bars" on). Every window that extends its client area drops one
+  of these in at the top; the OS min/max/close buttons still draw over the right end.
+-->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ExtremeLauncher.App.TitleBar"
+             Height="40"
+             PointerPressed="OnPointerPressed"
+             Background="{DynamicResource AppToolbarBrush}">
+  <TextBlock Text="{Binding $parent[Window].Title}"
+             FontWeight="SemiBold"
+             VerticalAlignment="Center"
+             Margin="14,0,0,0"
+             Foreground="{DynamicResource ButtonForeground}" />
+</UserControl>
