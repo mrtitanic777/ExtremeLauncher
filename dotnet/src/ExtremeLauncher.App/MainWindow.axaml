@@ -6,7 +6,11 @@
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
         Width="900" Height="600"
-        MinWidth="560" MinHeight="360">
+        MinWidth="560" MinHeight="360"
+        Background="{DynamicResource AppCanvasBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaTitleBarHeightHint="40">
 
   <Window.Resources>
     <app:IconImageConverter x:Key="IconImage" />
@@ -14,13 +18,77 @@
 
   <DockPanel>
 
+    <!-- Our own title bar, so the window is dark to the very top edge instead of wearing the stock
+         light/blue Windows caption. Draggable (see code-behind); the OS min/max/close buttons are
+         drawn over the right end by PreferSystemChrome, so the right ~140px is left clear. -->
+    <Border DockPanel.Dock="Top" Height="40"
+            Name="TitleBar" PointerPressed="TitleBar_PointerPressed"
+            Background="{DynamicResource AppToolbarBrush}">
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0" Spacing="8">
+        <TextBlock Text="🧊" FontSize="16" VerticalAlignment="Center" />
+        <TextBlock Text="Extreme Launcher" FontWeight="SemiBold" VerticalAlignment="Center"
+                   Foreground="{DynamicResource ButtonForeground}" />
+      </StackPanel>
+    </Border>
+
     <!-- The toolbar. Every button binds its enabled state to the view model rather than being
-         switched on and off by hand, so it cannot disagree with the selection. -->
+         switched on and off by hand, so it cannot disagree with the selection.
+
+         Laid out as a DockPanel: the "who / find / order / configure" utilities are pinned to the
+         right, and the actions fill and wrap on the left. Primary actions carry an icon and a label;
+         the menu and utility buttons are icon-only with a tooltip, so a dozen controls no longer read
+         as one wall of identical pills. -->
     <Border DockPanel.Dock="Top" Padding="8"
             BorderThickness="0,0,0,1"
             BorderBrush="{DynamicResource AppCardStrokeBrush}"
             Background="{DynamicResource AppToolbarBrush}">
-      <WrapPanel Classes="toolbar" Orientation="Horizontal">
+      <DockPanel LastChildFill="True">
+
+        <!-- ============ right: the utility cluster, pinned to the trailing edge ============ -->
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" VerticalAlignment="Top">
+          <TextBox Width="180" VerticalAlignment="Center"
+                   Watermark="Search"
+                   Text="{Binding Instances.SearchText, Mode=TwoWay}">
+            <TextBox.InnerLeftContent>
+              <PathIcon Classes="tbi" Data="{StaticResource IconSearch}" Margin="8,0,0,0"
+                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </TextBox.InnerLeftContent>
+          </TextBox>
+
+          <!-- Bound, not decorative: the items come from the view model so the picker cannot show an
+               option the model does not have, or fail to apply the one chosen. -->
+          <ComboBox Width="150" VerticalAlignment="Center"
+                    ItemsSource="{Binding Instances.SortOptions}"
+                    SelectedItem="{Binding Instances.SelectedSortOption, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:InstanceListViewModel+SortOption">
+                <TextBlock Text="{Binding Label}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+
+          <Border Classes="tool-sep" />
+
+          <!-- Who is playing, and the way to change it. Deliberately shows the name rather than a
+               generic "Accounts": the single most useful thing this toolbar can tell somebody before
+               they press Launch is which account the game is about to use. -->
+          <Button Command="{Binding OpenAccountsCommand}" IsEnabled="{Binding CanOpenAccounts}"
+                  ToolTip.Tip="Accounts">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <PathIcon Classes="tbi" Data="{StaticResource IconAccount}" />
+              <TextBlock Text="{Binding CurrentAccountLabel}" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
+          <!-- The defaults every instance inherits. Needs no selection, like New and Import. -->
+          <Button Classes="icon" Command="{Binding OpenSettingsCommand}"
+                  IsEnabled="{Binding CanOpenSettings}" ToolTip.Tip="Settings">
+            <PathIcon Classes="tbi" Data="{StaticResource IconSettings}" />
+          </Button>
+        </StackPanel>
+
+        <!-- ============ left: the actions, which wrap when the window is narrow ============ -->
+        <WrapPanel Classes="toolbar" Orientation="Horizontal">
         <!-- IsEnabled bound like every other button here. It was missing, and a plain RelayCommand
              has a CanExecute that is always true, so Launch stayed live with nothing selected, live
              for an instance that cannot run, and live during a launch. The command guards itself, so
@@ -28,43 +96,64 @@
              Found by the headless UI tests on their first run. -->
         <!-- The only button here that does NOT need a selection: the first thing a new user does is
              press it with an empty list. -->
-        <Button Content="New"
-                Command="{Binding NewInstanceCommand}"
-                IsEnabled="{Binding CanCreateInstance}" />
+        <Button Command="{Binding NewInstanceCommand}" IsEnabled="{Binding CanCreateInstance}">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <PathIcon Classes="tbi" Data="{StaticResource IconNew}" />
+            <TextBlock Text="New" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
 
         <!-- Searching for a pack, rather than importing a file somebody already downloaded. Listed
              before Import because it is the way most people would rather do it, and the only way
              that leaves the instance knowing which pack and version it came from. -->
-        <Button Content="Modpacks"
-                Command="{Binding BrowsePacksCommand}"
-                IsEnabled="{Binding CanBrowsePacks}" />
+        <Button Command="{Binding BrowsePacksCommand}" IsEnabled="{Binding CanBrowsePacks}">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <PathIcon Classes="tbi" Data="{StaticResource IconModpacks}" />
+            <TextBlock Text="Modpacks" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
 
         <!-- The other way somebody gets their first instance, and often the only way they ever make
              one. Needs no selection, for the same reason New does not. -->
-        <Button Content="Import"
-                Command="{Binding ImportPackCommand}"
-                IsEnabled="{Binding CanImportPack}" />
+        <Button Command="{Binding ImportPackCommand}" IsEnabled="{Binding CanImportPack}">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <PathIcon Classes="tbi" Data="{StaticResource IconImport}" />
+            <TextBlock Text="Import" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
 
         <Border Classes="tool-sep" />
 
         <!-- The hero action, accent-filled: the one button people open the launcher to press. -->
-        <Button Content="Launch"
-                Classes="hero"
-                Command="{Binding LaunchSelectedCommand}"
-                IsEnabled="{Binding CanLaunch}" />
+        <Button Classes="hero" Command="{Binding LaunchSelectedCommand}" IsEnabled="{Binding CanLaunch}">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <PathIcon Classes="tbi" Data="{StaticResource IconLaunch}" />
+            <TextBlock Text="Launch" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
 
         <!-- Stops a running game without opening its window; enabled only while it runs. -->
-        <Button Content="Kill"
-                Command="{Binding KillSelectedCommand}"
-                IsEnabled="{Binding CanKill}" />
+        <Button Command="{Binding KillSelectedCommand}" IsEnabled="{Binding CanKill}">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <PathIcon Classes="tbi" Data="{StaticResource IconKill}" />
+            <TextBlock Text="Kill" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
 
-        <Button Content="Edit"
-                Command="{Binding EditSelectedCommand}"
-                IsEnabled="{Binding CanOpenEditor}" />
+        <Button Command="{Binding EditSelectedCommand}" IsEnabled="{Binding CanOpenEditor}">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <PathIcon Classes="tbi" Data="{StaticResource IconEdit}" />
+            <TextBlock Text="Edit" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
 
         <!-- The secondary per-instance actions, folded into one menu so the toolbar is not a wall of
              sixteen identical buttons. All still one click away, none of them shouting. -->
-        <Button Content="More ▾" IsEnabled="{Binding HasSelection}">
+        <Button IsEnabled="{Binding HasSelection}" ToolTip.Tip="More actions">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <PathIcon Classes="tbi" Data="{StaticResource IconMore}" />
+            <TextBlock Text="More" VerticalAlignment="Center" />
+          </StackPanel>
           <Button.Flyout>
             <MenuFlyout>
               <MenuItem Header="Copy…" Command="{Binding CopySelectedCommand}" IsEnabled="{Binding CanCopy}" />
@@ -83,7 +172,8 @@
         <!-- The escape hatch every launcher needs. However complete the UI gets, somebody eventually
              has to look at a file, and a launcher that cannot show them where its files are makes
              that a search rather than a click. -->
-        <Button Content="Folders" IsEnabled="{Binding CanOpenFolders}">
+        <Button Classes="icon" IsEnabled="{Binding CanOpenFolders}" ToolTip.Tip="Folders">
+          <PathIcon Classes="tbi" Data="{StaticResource IconFolders}" />
           <Button.Flyout>
             <MenuFlyout>
               <MenuItem Header="This instance"
@@ -124,7 +214,8 @@
         <!-- Built from what this build actually has: most of these URLs are empty by default, and a
              menu entry that opens nothing looks like the launcher is broken rather than like the fork
              has no Discord. -->
-        <Button Content="Help" IsEnabled="{Binding CanOpenLinks}">
+        <Button Classes="icon" IsEnabled="{Binding CanOpenLinks}" ToolTip.Tip="Help &amp; links">
+          <PathIcon Classes="tbi" Data="{StaticResource IconHelp}" />
           <Button.Flyout>
             <MenuFlyout ItemsSource="{Binding Links}">
               <MenuFlyout.ItemContainerTheme>
@@ -140,9 +231,10 @@
           </Button.Flyout>
         </Button>
 
-        <Button Content="About"
-                Command="{Binding ShowAboutCommand}"
-                IsEnabled="{Binding CanShowAbout}" />
+        <Button Classes="icon" Command="{Binding ShowAboutCommand}"
+                IsEnabled="{Binding CanShowAbout}" ToolTip.Tip="About">
+          <PathIcon Classes="tbi" Data="{StaticResource IconAbout}" />
+        </Button>
 
         <!-- The headline itself is the button, which is upstream's design: the toolbar carries the
              newest post's title rather than the word "News". Clicking it opens that post with the
@@ -150,44 +242,15 @@
 
              Hidden entirely, not disabled, when this build has no feed configured. A permanently
              greyed-out "No news available." is a worse thing to look at than empty space. -->
-        <Button Margin="18,0,0,0"
-                MaxWidth="260"
+        <Button MaxWidth="240"
                 Content="{Binding News.Label}"
                 ToolTip.Tip="{Binding News.Tooltip}"
                 Command="{Binding ShowNewsCommand}"
                 CommandParameter="True"
                 IsVisible="{Binding News.IsAvailable}"
                 IsEnabled="{Binding CanShowNews}" />
-
-        <!-- The defaults every instance inherits. Needs no selection, like New and Import. -->
-        <Button Content="Settings"
-                Command="{Binding OpenSettingsCommand}"
-                IsEnabled="{Binding CanOpenSettings}" />
-
-        <!-- Who is playing, and the way to change it. Deliberately shows the name rather than a
-             generic "Accounts": the single most useful thing this toolbar can tell somebody before
-             they press Launch is which account the game is about to use. -->
-        <Button Content="{Binding CurrentAccountLabel}"
-                Margin="18,0,0,0"
-                Command="{Binding OpenAccountsCommand}"
-                IsEnabled="{Binding CanOpenAccounts}" />
-
-        <TextBox Width="220" Margin="18,0,0,0"
-                 Watermark="Search instances"
-                 Text="{Binding Instances.SearchText, Mode=TwoWay}" />
-
-        <!-- Bound, not decorative: the items come from the view model so the picker cannot show an
-             option the model does not have, or fail to apply the one chosen. -->
-        <ComboBox Width="170"
-                  ItemsSource="{Binding Instances.SortOptions}"
-                  SelectedItem="{Binding Instances.SelectedSortOption, Mode=TwoWay}">
-          <ComboBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:InstanceListViewModel+SortOption">
-              <TextBlock Text="{Binding Label}" />
-            </DataTemplate>
-          </ComboBox.ItemTemplate>
-        </ComboBox>
-      </WrapPanel>
+        </WrapPanel>
+      </DockPanel>
     </Border>
 
     <!-- The launch status bar. Visible only while something is happening or has just failed, so the

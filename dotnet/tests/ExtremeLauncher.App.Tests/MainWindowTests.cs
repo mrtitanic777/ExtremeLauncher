@@ -98,11 +98,14 @@ public sealed class MainWindowTests : IDisposable
         return viewModel;
     }
 
-    /// <summary>Finds a button by the text on it, which is what a user identifies it by.</summary>
+    /// <summary>Finds a button by the text on it, which is what a user identifies it by. Matches either
+    /// a plain string content or, now that toolbar buttons are an icon beside a label, a descendant
+    /// TextBlock carrying that label.</summary>
     private static Button Button(Visual root, string content)
         => root.GetLogicalDescendants()
             .OfType<Button>()
-            .Single(b => b.Content as string == content);
+            .Single(b => (b.Content as string) == content
+                         || b.GetLogicalDescendants().OfType<TextBlock>().Any(t => t.Text == content));
 
     private MainWindow Show(MainWindowViewModel viewModel)
     {
@@ -295,12 +298,12 @@ public sealed class MainWindowTests : IDisposable
 
         // The per-instance actions live behind the "More" button, which is off until something is
         // selected; Launch is the same. Before a selection, neither is actionable.
-        Assert.False(Button(window, "More ▾").IsEffectivelyEnabled);
+        Assert.False(Button(window, "More").IsEffectivelyEnabled);
         Assert.False(Button(window, "Launch").IsEffectivelyEnabled);
 
         viewModel.Select("Alpha");
 
-        Assert.True(Button(window, "More ▾").IsEffectivelyEnabled);
+        Assert.True(Button(window, "More").IsEffectivelyEnabled);
         Assert.True(Button(window, "Launch").IsEffectivelyEnabled);
     }
 
@@ -320,7 +323,7 @@ public sealed class MainWindowTests : IDisposable
 
         // Delete and the rest are under "More", which is enabled for any selection -- an unsupported
         // instance can still be tidied up.
-        Assert.True(Button(window, "More ▾").IsEffectivelyEnabled);
+        Assert.True(Button(window, "More").IsEffectivelyEnabled);
     }
 
     /*
@@ -495,7 +498,7 @@ public sealed class MainWindowTests : IDisposable
         Assert.True(Button(window, "New").IsEffectivelyEnabled);
 
         // ...while the ones that act on a selection are not.
-        Assert.False(Button(window, "More ▾").IsEffectivelyEnabled);
+        Assert.False(Button(window, "More").IsEffectivelyEnabled);
     }
 
     /// <summary>With no creator supplied, New is disabled rather than live-and-useless.</summary>
