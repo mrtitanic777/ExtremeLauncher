@@ -22,16 +22,16 @@ The rest of this document describes the original Qt/C++ launcher.
 
 ### .NET port — prebuilt downloads
 
-The C#/.NET 9 + Avalonia port now has a **prebuilt release**: **[Extreme Launcher .NET port — 5.1.2](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest)** — a full UI refresh over 5.1.
+The C#/.NET 9 + Avalonia port now has a **prebuilt release**: **[Extreme Launcher .NET port — 5.1.3](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest)** — a full UI refresh over 5.1.
 
 Self-contained builds — no .NET runtime to install, just download, unzip and run:
 
 | Platform | Download |
 |----------|----------|
-| Windows (x64) | [`…-win-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.2-win-x64.zip) |
-| Linux (x64) | [`…-linux-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.2-linux-x64.zip) |
-| macOS (Apple Silicon) | [`…-osx-arm64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.2-osx-arm64.zip) |
-| macOS (Intel) | [`…-osx-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.2-osx-x64.zip) |
+| Windows (x64) | [`…-win-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.3-win-x64.zip) |
+| Linux (x64) | [`…-linux-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.3-linux-x64.zip) |
+| macOS (Apple Silicon) | [`…-osx-arm64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.3-osx-arm64.zip) |
+| macOS (Intel) | [`…-osx-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.3-osx-x64.zip) |
 
 The [`checksums.txt`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/checksums.txt) on the release page holds the SHA-256 of each archive.
 
