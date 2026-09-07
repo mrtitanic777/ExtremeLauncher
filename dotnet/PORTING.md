@@ -74,7 +74,15 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**370 of 758 files. 3,295 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**371 of 758 files. 3,298 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Jar-mod install (wave 78).** Ported `PackProfile::installJarMods_internal` to
+> `Launch/JarModInstaller.cs` — a Launch-level operation, since PackProfile is decoupled from instance
+> I/O. Each jar is copied into `jarmods/` under a fresh id, a one-off component patch naming it as a
+> `local` jar-mod library is written to `patches/`, and the component is appended to the profile and
+> mmc-pack.json. 3 tests, including a round-trip of the written patch back through
+> `OneSixVersionFormat.VersionFileFromJson`. This also unblocks the jarmod-fallback path of the legacy
+> FTB installer (wave 77).
 
 > **Legacy FTB install helpers + private packs (wave 77).** Ported the pure, bug-prone half of
 > `legacy_ftb/PackInstallTask` and all of `PrivatePackManager` into `ModPlatform/LegacyFtb.cs`:
