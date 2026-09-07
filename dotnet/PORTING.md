@@ -74,7 +74,19 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**374 of 758 files. 3,307 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**375 of 758 files. 3,313 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Technic pack processor (wave 81).** Ported `technic/TechnicPackProcessor` to
+> `Launch/TechnicPackInstall.cs` as `TechnicPackBuilder.BuildFromStaging`: given a Technic pack already
+> extracted into `staging/minecraft`, it works out the components and writes the pack profile plus
+> instance.cfg. It picks between the four shapes upstream handles — a `bin/modpack.jar` carrying a
+> `version.json` (→ the already-ported `TechnicVersionJson.DetectComponents`, with the Minecraft version
+> read from `fmlversion.properties` when `inheritsFrom` is absent), a pre-Forge `modpack.jar` that is
+> itself a jar mod (over a search-supplied Minecraft version, Forge coordinates from
+> `forgeversion.properties`), a Solder `bin/version.json` on disk, and the "Vanilla" pack with no bin at
+> all. 6 tests over hand-built staging folders drive each branch, including the jar-mod-with-no-known-MC
+> failure. This completes the Technic install path: the parsing (`TechnicVersionJson`, `TechnicSolder`)
+> was already ported; this is the orchestration that turns a downloaded pack into an instance.
 
 > **Legacy FTB browser UI (wave 80).** The last piece: `LegacyFtbBrowserViewModel` (fetch the catalogue
 > once, filter it in memory, pick a pack and version — 6 tests over a stub source), the
