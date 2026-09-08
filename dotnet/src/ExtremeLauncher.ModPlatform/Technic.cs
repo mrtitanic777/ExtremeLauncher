@@ -484,3 +484,29 @@ public static class TechnicSearch
         return lastDot >= 0 ? path[(lastDot + 1)..] : string.Empty;
     }
 }
+
+/// <summary>Fetches Technic pack search results from the platform API.</summary>
+public static class TechnicPackSource
+{
+    /// <summary>
+    /// Searches the Technic platform. An empty term returns the trending list; a "#slug" or a
+    /// modpack URL returns that one pack (as a single-item list); anything else is a text search.
+    /// </summary>
+    public static async Task<IReadOnlyList<TechnicModpack>> SearchAsync(
+        HttpClient client, string apiBaseUrl, string apiBuild, string term, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+
+        var (url, mode) = TechnicSearch.SearchUrl(apiBaseUrl, apiBuild, term);
+
+        var data = await client.GetByteArrayAsync(url, cancellationToken).ConfigureAwait(false);
+        var root = Json.RequireObject(Json.RequireDocument(data, "technic search"));
+
+        if (mode == TechnicSearchMode.List)
+        {
+            return TechnicSearch.ParseList(root);
+        }
+
+        return TechnicSearch.ParseSingle(root) is { } pack ? [pack] : [];
+    }
+}

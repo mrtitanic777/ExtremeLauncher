@@ -74,7 +74,18 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**387 of 758 files. 3,517 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**388 of 758 files. 3,523 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Technic browser view-model (wave 109).** `TechnicBrowserViewModel` (ViewModels) and
+> `TechnicPackSource.SearchAsync` (ModPlatform). Unlike the FTB and ATLauncher browsers, Technic has a
+> real search endpoint, so this is search-driven like the Modrinth one: `LoadAsync` runs the trending
+> search (empty term), and typing + `SearchAsync` runs a query, each replacing the results. Selecting a
+> pack enables install and `Accept` hands it back through `Chosen`; the pack's version and whether it is
+> a Solder or single-zip install are resolved from its detail at install time, above the view model.
+> `TechnicPackSource.SearchAsync` fetches the URL `TechnicSearch` builds and reads it by mode (list vs
+> single). 6 view-model tests over a stub source: trending on load, a query replacing results, selection
+> enabling install, Accept recording (and not, with no selection), and the typed-name override. The
+> window + app wiring is the remaining step to make Technic the fourth in-GUI platform.
 
 > **Technic search (wave 108).** `TechnicSearch` (in ModPlatform), the discovery layer for a Technic
 > browser, ported from TechnicModel — the last unported Technic piece (install and version parsing were
