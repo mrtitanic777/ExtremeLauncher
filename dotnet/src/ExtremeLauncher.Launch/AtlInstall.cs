@@ -33,6 +33,7 @@ using ExtremeLauncher.Meta;
 using ExtremeLauncher.Minecraft;
 using ExtremeLauncher.ModPlatform;
 using ExtremeLauncher.Settings;
+using ExtremeLauncher.Tasks;
 
 namespace ExtremeLauncher.Launch;
 
@@ -324,7 +325,7 @@ public enum AtlModAction
 
 /// <summary>One ATLauncher mod to fetch, and what becomes of it.</summary>
 public sealed record AtlModDownload(
-    string Url, string Md5, AtlModAction Action, string? TargetPath, bool IsJarMod);
+    string Url, string Md5, AtlModAction Action, string? TargetPath, bool IsJarMod, AtlVersionMod Mod);
 
 /// <summary>The downloads and manual steps for an ATLauncher pack's mods.</summary>
 public sealed class AtlModPlan
@@ -403,13 +404,13 @@ public static class AtlModPlanner
 
             if (mod.Type is AtlModType.Extract or AtlModType.TexturePackExtract or AtlModType.ResourcePackExtract)
             {
-                plan.Downloads.Add(new AtlModDownload(url, mod.Md5, AtlModAction.Extract, TargetPath: null, IsJarMod: false));
+                plan.Downloads.Add(new AtlModDownload(url, mod.Md5, AtlModAction.Extract, TargetPath: null, IsJarMod: false, mod));
                 continue;
             }
 
             if (mod.Type == AtlModType.Decomp)
             {
-                plan.Downloads.Add(new AtlModDownload(url, mod.Md5, AtlModAction.Decompile, TargetPath: null, IsJarMod: false));
+                plan.Downloads.Add(new AtlModDownload(url, mod.Md5, AtlModAction.Decompile, TargetPath: null, IsJarMod: false, mod));
                 continue;
             }
 
@@ -422,7 +423,7 @@ public static class AtlModPlanner
             var target = $"{GameFolder}/{relativeFolder}/{mod.File}";
             var isJarMod = mod.Type is AtlModType.Forge or AtlModType.Jar;
 
-            plan.Downloads.Add(new AtlModDownload(url, mod.Md5, AtlModAction.Place, target, isJarMod));
+            plan.Downloads.Add(new AtlModDownload(url, mod.Md5, AtlModAction.Place, target, isJarMod, mod));
         }
 
         return plan;
