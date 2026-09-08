@@ -204,3 +204,123 @@ public static class AtlPackBuilder
         settings.Set("ManagedPackVersionName", versionName);
     }
 }
+
+/// <summary>What the installer does with a downloaded ATLauncher mod file.</summary>
+public enum AtlModAction
+{
+    /// <summary>Dropped whole into a folder (mods, jarmods, coremods, …).</summary>
+    Place,
+
+    /// <summary>Unpacked into a folder.</summary>
+    Extract,
+
+    /// <summary>Unpacked, with one named file taken out.</summary>
+    Decompile,
+}
+
+/// <summary>One ATLauncher mod to fetch, and what becomes of it.</summary>
+public sealed record AtlModDownload(
+    string Url, string Md5, AtlModAction Action, string? TargetPath, bool IsJarMod);
+
+/// <summary>The downloads and manual steps for an ATLauncher pack's mods.</summary>
+public sealed class AtlModPlan
+{
+    public List<AtlModDownload> Downloads { get; } = [];
+
+    /// <summary>Mods whose download type is "browser" — the user must fetch these by hand.</summary>
+    public List<AtlVersionMod> Blocked { get; } = [];
+}
+
+/// <summary>
+/// Builds the mod download plan for an ATLauncher pack version, ported from ATLPackInstallTask's
+/// downloadMods. The choosing of optional mods is a UI step above this; given the selection, the plan
+/// is pure: which mods are installed, where each comes from, and what is done with it.
+/// </summary>
+public static class AtlModPlanner
+{
+    private const string GameFolder = "minecraft";
+
+    /// <summary>The optional mods a pack offers, by name, for the caller to present a chooser.</summary>
+    public static List<string> OptionalMods(IEnumerable<AtlVersionMod> mods)
+    {
+        ArgumentNullException.ThrowIfNull(mods);
+
+        return [.. mods.Where(m => m.Optional).Select(m => m.Name)];
+    }
+
+    /// <summary>
+    /// The URL a mod is fetched from, or <c>null</c> when it must be downloaded by hand (a "browser"
+    /// mod). A server mod hangs off ATLauncher's CDN; a direct mod names its own URL.
+    /// </summary>
+    /// <exception cref="LauncherException">The download type is unknown, as upstream fails.</exception>
+    public static string? DownloadUrl(AtlVersionMod mod, string serverBaseUrl)
+    {
+        ArgumentNullException.ThrowIfNull(mod);
+
+        return mod.Download switch
+        {
+            AtlDownloadType.Server => serverBaseUrl + mod.Url,
+            AtlDownloadType.Direct => mod.Url,
+            AtlDownloadType.Browser => null,
+            _ => throw new LauncherException($"Unknown download type: {mod.DownloadRaw}"),
+        };
+    }
+
+    /// <summary>
+    /// The plan for a pack version's mods, given the optional ones the user chose (by name). Only
+    /// client-side mods are considered, and an unchosen optional mod is left out entirely — unlike
+    /// CurseForge, ATLauncher does not install it disabled.
+    /// </summary>
+    public static AtlModPlan Build(
+        IEnumerable<AtlVersionMod> mods,
+        IReadOnlySet<string> selectedOptional,
+        string minecraftVersion,
+        string? serverBaseUrl = null)
+    {
+        ArgumentNullException.ThrowIfNull(mods);
+        ArgumentNullException.ThrowIfNull(selectedOptional);
+
+        var server = serverBaseUrl ?? BuildConfig.Instance.AtlDownloadServerUrl;
+        var plan = new AtlModPlan();
+
+        foreach (var mod in mods)
+        {
+            // Server-side-only mods are not part of a client install; an unchosen optional mod is skipped.
+            if (!mod.Client || (mod.Optional && !selectedOptional.Contains(mod.Name)))
+            {
+                continue;
+            }
+
+            if (DownloadUrl(mod, server) is not { } url)
+            {
+                plan.Blocked.Add(mod);
+                continue;
+            }
+
+            if (mod.Type is AtlModType.Extract or AtlModType.TexturePackExtract or AtlModType.ResourcePackExtract)
+            {
+                plan.Downloads.Add(new AtlModDownload(url, mod.Md5, AtlModAction.Extract, TargetPath: null, IsJarMod: false));
+                continue;
+            }
+
+            if (mod.Type == AtlModType.Decomp)
+            {
+                plan.Downloads.Add(new AtlModDownload(url, mod.Md5, AtlModAction.Decompile, TargetPath: null, IsJarMod: false));
+                continue;
+            }
+
+            // A plain mod goes into a folder decided by its type; a type with no folder is skipped.
+            if (AtlInstall.GetDirForModType(mod.Type, mod.TypeRaw, minecraftVersion) is not { } relativeFolder)
+            {
+                continue;
+            }
+
+            var target = $"{GameFolder}/{relativeFolder}/{mod.File}";
+            var isJarMod = mod.Type is AtlModType.Forge or AtlModType.Jar;
+
+            plan.Downloads.Add(new AtlModDownload(url, mod.Md5, AtlModAction.Place, target, isJarMod));
+        }
+
+        return plan;
+    }
+}
