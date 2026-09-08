@@ -74,7 +74,19 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**381 of 758 files. 3,423 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**382 of 758 files. 3,430 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Mod dependency filtering (wave 91).** Ported the pure heart of
+> `GetModDependenciesTask::getDependenciesForVersion` to `ModPlatform/ModDependencies.cs`. When a mod
+> version is about to be installed, `NewRequiredDependencies` decides which of its dependencies still
+> need fetching: only the REQUIRED ones, with the Fabric/Quilt override applied (wave 89's
+> `ModIndex.ApplyLoaderOverride`), and only those not already accounted for — not a duplicate within the
+> version, and not already in the caller's set of mods-being-installed and mods-already-present. The
+> Modrinth version-only path (a dependency named by file version rather than project id) is matched by
+> version. The task around it does the network fetch and recursion; this is the filter. Upstream keeps
+> three separate "already have" lists checked with slightly different (and, on one path, unreachable)
+> comparisons; nothing tests that, so the port unifies them into one `KnownDependency` set with one
+> rule — documented in the source. 7 tests. Builds directly on wave 89.
 
 > **CurseForge in the modpack browser (wave 90).** Wired wave 88's `FlamePackIndex` into the UI. The
 > pack browser was Modrinth-only; it now has a provider picker (Modrinth / CurseForge).
