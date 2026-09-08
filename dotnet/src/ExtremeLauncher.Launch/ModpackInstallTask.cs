@@ -98,6 +98,20 @@ public sealed class ModpackInstallTask : LauncherTask, IInstanceTask
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
+        /*
+         * MODRINTH ONLY, ON PURPOSE. The download below is handed to ModrinthImportTask, which reads a
+         * .mrpack. A CurseForge pack's file is a zip of manifest.json + overrides in a different format
+         * that importer cannot read, so a pack from any other provider is refused here with a clear
+         * message rather than downloaded and mis-parsed. The browser lists CurseForge packs so they can
+         * be found; installing one waits on a Flame import path (its manifest and file resolver are
+         * ported, the orchestration is not).
+         */
+        if (_pack.Provider != ResourceProvider.Modrinth)
+        {
+            throw new TaskFailedException(
+                $"Installing a {_pack.Provider} modpack from the browser is not supported yet — only Modrinth.");
+        }
+
         if (_version.DownloadUrl.Length == 0)
         {
             /*
