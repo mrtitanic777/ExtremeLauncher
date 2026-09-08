@@ -26,6 +26,8 @@
  *     library ATLauncher ships can line up with the same library from the metadata index.
  */
 
+using System.Security.Cryptography;
+
 using ExtremeLauncher.Core;
 using ExtremeLauncher.Meta;
 using ExtremeLauncher.Minecraft;
@@ -424,5 +426,77 @@ public static class AtlModPlanner
         }
 
         return plan;
+    }
+}
+
+/// <summary>The ATLauncher CDN URLs for one version of one pack. Ported from ATLPackInstallTask.</summary>
+public static class AtlUrls
+{
+    /// <summary>The version manifest (Configs.json) — the loader, mods and file rules for a version.</summary>
+    public static string VersionManifest(string serverBaseUrl, string packSafeName, string versionName)
+        => $"{serverBaseUrl}packs/{packSafeName}/versions/{versionName}/Configs.json";
+
+    /// <summary>The config archive (Configs.zip) — the loose files laid over the instance.</summary>
+    public static string ConfigArchive(string serverBaseUrl, string packSafeName, string versionName)
+        => $"{serverBaseUrl}packs/{packSafeName}/versions/{versionName}/Configs.zip";
+}
+
+/// <summary>
+/// Downloads and unpacks a pack version's config archive, ported from ATLPackInstallTask's
+/// installConfigs / extractConfigs. The archive's contents are the loose files (config, scripts,
+/// resources) that go straight into the game folder, checked against the version's sha1 when it gives
+/// one.
+/// </summary>
+public static class AtlConfigInstaller
+{
+    public static async Task InstallAsync(
+        HttpClient client,
+        string url,
+        string gameRoot,
+        string sha1,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+
+        var temp = FileSystem.PathCombine(Path.GetTempPath(), $"el-atl-configs-{Guid.NewGuid():N}.zip");
+
+        try
+        {
+            using (var response = await client
+                       .GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
+
+                await using var output = File.Create(temp);
+                await response.Content.CopyToAsync(output, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (sha1 is { Length: > 0 })
+            {
+                string actual;
+
+                await using (var input = File.OpenRead(temp))
+                {
+                    actual = Convert.ToHexString(await SHA1.HashDataAsync(input, cancellationToken).ConfigureAwait(false));
+                }
+
+                if (!string.Equals(actual, sha1, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new LauncherException(
+                        $"Config archive checksum mismatch: expected {sha1}, got {actual.ToLowerInvariant()}.");
+                }
+            }
+
+            FileSystem.EnsureFolderPathExists(gameRoot);
+
+            if (MMCZip.ExtractDir(temp, gameRoot) is null)
+            {
+                throw new LauncherException("Failed to extract the pack config archive.");
+            }
+        }
+        finally
+        {
+            FileSystem.DeletePath(temp);
+        }
     }
 }
