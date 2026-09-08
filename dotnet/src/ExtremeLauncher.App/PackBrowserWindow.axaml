@@ -47,8 +47,13 @@
     </Border>
 
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,10">
-      <TextBox Name="SearchBox" Width="360"
-               Watermark="Search Modrinth for modpacks"
+      <ComboBox Name="ProviderBox" Width="130" VerticalAlignment="Center" SelectedIndex="0"
+                ToolTip.Tip="Which modpack platform to search">
+        <ComboBoxItem Content="Modrinth" />
+        <ComboBoxItem Content="CurseForge" />
+      </ComboBox>
+      <TextBox Name="SearchBox" Width="300"
+               Watermark="Search for modpacks"
                Text="{Binding SearchText, Mode=TwoWay}" />
       <Button Name="SearchButton" Content="Search" IsEnabled="{Binding CanSearch}" />
 

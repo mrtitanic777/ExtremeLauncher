@@ -46,6 +46,17 @@ public partial class PackBrowserWindow : Window
 
         search.Click += (_, _) => Run();
 
+        // "CurseForge" is item 1; the enum calls it Flame. Same mapping as the mod browser.
+        this.FindControl<ComboBox>("ProviderBox")!.SelectionChanged += (_, _) =>
+        {
+            if (DataContext is PackBrowserViewModel model)
+            {
+                model.Provider = this.FindControl<ComboBox>("ProviderBox")!.SelectedIndex == 1
+                    ? ExtremeLauncher.ModPlatform.ResourceProvider.Flame
+                    : ExtremeLauncher.ModPlatform.ResourceProvider.Modrinth;
+            }
+        };
+
         // Return searches, as in the mod browser: the field is a search box, and Cancel being the
         // default button still governs Escape and the rest of the window.
         box.KeyDown += (_, e) =>
