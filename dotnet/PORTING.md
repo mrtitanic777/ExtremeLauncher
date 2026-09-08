@@ -74,7 +74,21 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**383 of 758 files. 3,441 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**383 of 758 files. 3,449 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Flame download plan (wave 94).** The pure step between resolving a CurseForge pack's files and
+> fetching them, ported from FlameInstanceCreationTask's idResolverSucceeded/setupDownloadJob into
+> `FlameDownloadPlanner` (in `Launch/FlamePackInstall.cs`). Given the resolved files (from the ported
+> `FlameFileResolver`), `Build` decides for each: a file with a URL becomes a download at
+> `minecraft/{targetFolder}/{name}`; a file with no URL is blocked (a manual download); an optional file
+> the user did not select is still downloaded but lands `.disabled`; and every `.zip` is also recorded
+> as a zip resource to extract after download. `OptionalFiles` lists the optional entries for the
+> chooser. **Deliberate fix:** upstream builds the optional list from the raw file name but checks the
+> sanitised one, so a file with an invalid character in its name never matches its own selection and is
+> always disabled; the port sanitises on both sides, documented in the source. 8 tests over the target
+> path, blocked handling, the optional enable/disable rule, required-ignores-selection, and zip
+> resources. With wave 93's staging, the CurseForge import is now ported bar the network glue (issue the
+> resolver, run the downloads, extract the zips) and its two dialogs.
 
 > **Flame import core (wave 93).** The no-network core of `flame/FlameInstanceCreationTask`'s
 > createInstance, ported to `Launch/FlamePackInstall.cs` as `FlamePackBuilder.BuildFromExtracted` —

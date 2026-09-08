@@ -119,3 +119,96 @@ public static class FlamePackBuilder
         return "default";
     }
 }
+
+/// <summary>One file to fetch: where from, and where it lands under the instance.</summary>
+public sealed record FlameDownload(string Url, string RelativePath);
+
+/// <summary>The plan for turning resolved pack files into downloads and manual steps.</summary>
+public sealed class FlameDownloadPlan
+{
+    /// <summary>Files with a usable URL, each with its target path relative to the instance root.</summary>
+    public List<FlameDownload> Downloads { get; } = [];
+
+    /// <summary>Files with no URL — the user must fetch these by hand.</summary>
+    public List<FlameResolvedFile> Blocked { get; } = [];
+
+    /// <summary>The <c>.zip</c> files, which are extracted into place after download rather than dropped in.</summary>
+    public List<(string FileName, string TargetFolder)> ZipResources { get; } = [];
+}
+
+/// <summary>
+/// Builds the download plan from a pack's resolved files, ported from FlameInstanceCreationTask's
+/// idResolverSucceeded and setupDownloadJob. The resolution itself (FlameFileResolver) and the actual
+/// fetching are elsewhere; this is the pure step in between — deciding, for each resolved file, whether
+/// it is downloaded and to what path, which are the manual downloads, and which are zip resources.
+/// </summary>
+public static class FlameDownloadPlanner
+{
+    private const string GameFolder = "minecraft";
+
+    /// <summary>
+    /// The optional files a pack offers, as instance-relative paths (under the game folder), for the
+    /// caller to present a chooser. Required files are never listed — they are always installed.
+    /// </summary>
+    /// <remarks>
+    /// The path is built from the SANITISED file name, the same form <see cref="Build"/> compares the
+    /// selection against. Upstream builds this list from the raw name but checks the sanitised one, so a
+    /// file with an invalid character in its name never matches its own selection and is always
+    /// disabled; using the sanitised name on both sides fixes that quietly.
+    /// </remarks>
+    public static List<string> OptionalFiles(IEnumerable<FlameResolvedFile> resolved)
+    {
+        ArgumentNullException.ThrowIfNull(resolved);
+
+        return [.. resolved.Where(f => !f.Entry.Required).Select(RelativePath)];
+    }
+
+    /// <summary>
+    /// The download plan. Every resolved file with a URL becomes a download; a file whose URL is
+    /// missing is blocked (a manual step). An optional file the caller did not select is still
+    /// downloaded but lands disabled (a <c>.disabled</c> suffix), matching upstream. Every <c>.zip</c>
+    /// file is also recorded as a zip resource to be extracted after download.
+    /// </summary>
+    /// <param name="selectedOptional">
+    /// The optional files (by the paths <see cref="OptionalFiles"/> returned) the user chose to enable.
+    /// </param>
+    public static FlameDownloadPlan Build(
+        IEnumerable<FlameResolvedFile> resolved, IReadOnlySet<string> selectedOptional)
+    {
+        ArgumentNullException.ThrowIfNull(resolved);
+        ArgumentNullException.ThrowIfNull(selectedOptional);
+
+        var plan = new FlameDownloadPlan();
+
+        foreach (var file in resolved)
+        {
+            if (file.Version.FileName.EndsWith(".zip", StringComparison.Ordinal))
+            {
+                plan.ZipResources.Add((file.Version.FileName, file.Entry.TargetFolder));
+            }
+
+            if (file.IsBlocked)
+            {
+                plan.Blocked.Add(file);
+                continue;
+            }
+
+            var relativeToGame = RelativePath(file);
+
+            // An unselected optional file is installed disabled rather than left out, so the user can
+            // turn it on later without re-downloading.
+            if (!file.Entry.Required && !selectedOptional.Contains(relativeToGame))
+            {
+                relativeToGame += ".disabled";
+            }
+
+            plan.Downloads.Add(new FlameDownload(file.Version.DownloadUrl, $"{GameFolder}/{relativeToGame}"));
+        }
+
+        return plan;
+    }
+
+    /// <summary>A file's path under the game folder: its target folder plus its sanitised name.</summary>
+    private static string RelativePath(FlameResolvedFile file)
+        => $"{file.Entry.TargetFolder}/{FileSystem.RemoveInvalidPathChars(file.Version.FileName)}";
+}
