@@ -74,7 +74,21 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**382 of 758 files. 3,432 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**383 of 758 files. 3,441 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Flame import core (wave 93).** The no-network core of `flame/FlameInstanceCreationTask`'s
+> createInstance, ported to `Launch/FlamePackInstall.cs` as `FlamePackBuilder.BuildFromExtracted` —
+> parallel to the FTB and Technic builders. Given an extracted CurseForge pack (its manifest already
+> parsed by the ported `FlamePackManifest`, its overrides folder under the instance root), it stages the
+> instance: writes the pack profile from `PackComponents.FromFlame` (Minecraft normalised, loader mapped,
+> the NeoForge 1.20.1 quirk handled), moves the overrides folder in to become the game directory, files
+> manifest.json under `flame/` for later update checks, and writes instance.cfg. `ResolveIconKey` ports
+> the name-based icon defaults (Direwolf20 → steve, FTB/Feed The Beast → ftb_logo, a chosen icon always
+> winning). 9 tests: Forge and NeoForge component builds, overrides becoming the game folder, the
+> manifest filed, a typed name overriding the manifest, a missing overrides folder tolerated, and the
+> icon table. This is everything the CurseForge import does that needs no network; resolving the
+> manifest's file ids to download URLs (via the ported `FlameFileResolver`) and fetching them, with the
+> blocked-mod handling that entails, is the remaining half.
 
 > **Modpack install provider guard (wave 92).** A correctness fix closing a gap wave 90 opened: the
 > browser now lists CurseForge modpacks, but `ModpackInstallTask` hands whatever it downloads to
