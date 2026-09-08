@@ -20,6 +20,7 @@
  */
 
 using System.Text;
+using ExtremeLauncher.Core;
 using Xunit;
 
 namespace ExtremeLauncher.ModPlatform.Tests;
@@ -193,4 +194,52 @@ public sealed class PackComponentsTests
     [Fact]
     public void OnlyTrailingDotsAreRemoved()
         => Assert.Equal("1.20.1-pre.1", PackComponents.NormaliseMinecraftVersion("1.20.1-pre.1."));
+
+    // ================================================================== FromAtl
+
+    private static AtlPackVersion AtlVersion(string minecraft, string loaderType, string loaderVersion)
+    {
+        var version = new AtlPackVersion { Minecraft = minecraft };
+        version.Loader.Type = loaderType;
+        version.Loader.Version = loaderVersion;
+
+        return version;
+    }
+
+    [Theory]
+    [InlineData("forge", "net.minecraftforge")]
+    [InlineData("neoforge", "net.neoforged")]
+    [InlineData("fabric", "net.fabricmc.fabric-loader")]
+    public void FromAtlMapsTheLoaderTypeToItsComponent(string loaderType, string uid)
+    {
+        var components = PackComponents.FromAtl(AtlVersion("1.20.1", loaderType, "1.2.3"));
+
+        Assert.Equal(
+            [("net.minecraft", "1.20.1"), (uid, "1.2.3")],
+            components.Select(c => (c.Uid, c.Version)));
+        Assert.True(components[0].Important);
+        Assert.False(components[1].Important);
+    }
+
+    [Fact]
+    public void FromAtlWithNoLoaderIsJustMinecraft()
+    {
+        var component = Assert.Single(PackComponents.FromAtl(AtlVersion("1.7.10", string.Empty, string.Empty)));
+
+        Assert.Equal("net.minecraft", component.Uid);
+        Assert.True(component.Important);
+    }
+
+    [Fact]
+    public void FromAtlNormalisesTheMinecraftVersion()
+        => Assert.Equal("1.20.1", PackComponents.FromAtl(AtlVersion("1.20.1.", string.Empty, string.Empty))[0].Version);
+
+    /// <summary>A loader ATLauncher names but this launcher does not know is a fatal install error.</summary>
+    [Fact]
+    public void FromAtlRejectsAnUnknownLoaderType()
+    {
+        var error = Assert.Throws<LauncherException>(() => PackComponents.FromAtl(AtlVersion("1.20.1", "banana", "1")));
+
+        Assert.Contains("banana", error.Message, StringComparison.Ordinal);
+    }
 }
