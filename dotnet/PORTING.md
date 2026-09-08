@@ -74,7 +74,22 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**383 of 758 files. 3,494 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**384 of 758 files. 3,496 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **ATLauncher install orchestration (wave 104).** `AtlInstallTask` (new `Launch/AtlInstallTask.cs`), the
+> top-level `IInstanceTask` that threads every earlier ATLauncher wave together into a working install:
+> fetch the version manifest (`AtlPackManifest.LoadVersion`), lay the config archive over the game folder
+> (`AtlConfigInstaller`), build the mod plan from the default selection (`AtlModPlanner`), then for each
+> mod do what its type asks — a plain mod downloaded into place, a jar mod fetched to temp and installed
+> as a component, an archive extracted or one file decompiled (`AtlModExtractor`) — and finally stage the
+> instance (`AtlPackBuilder`). Downloads are md5-checked; a browser-only mod fails the install with a
+> message naming it; temp files are always cleaned up. The resolver/HTTP client is injected. This is a
+> fresh install, so the update cleaner is not run, and the optional chooser and share-code flow stay
+> above the task. To carry each mod to the extractor, `AtlModDownload` now also holds its source mod.
+> 2 tests, end-to-end with no network (a stub client routing manifest, config zip and mod URLs from
+> memory): a pack resolves → configures → downloads → stages into a working instance, and a browser-only
+> mod fails and is named. **ATLauncher now installs end to end** — only the browser UI remains, mirroring
+> CurseForge's wave-96 wiring.
 
 > **ATLauncher mod extract/decompile (wave 103).** `AtlModExtractor` (in `Launch/AtlInstall.cs`), the
 > last gnarly bit of ATLPackInstallTask's extractMods — the mod types that are unpacked rather than
