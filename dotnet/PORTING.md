@@ -74,7 +74,19 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**383 of 758 files. 3,488 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**383 of 758 files. 3,494 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **ATLauncher mod extract/decompile (wave 103).** `AtlModExtractor` (in `Launch/AtlInstall.cs`), the
+> last gnarly bit of ATLPackInstallTask's extractMods — the mod types that are unpacked rather than
+> dropped in. `Extract` unpacks an archive (or just the one folder of it the mod names, leading slash
+> stripped) into a target folder from the mod's `extractTo`; a texture- or resource-pack extract goes to
+> a fixed `texturepacks/extracted` or `resourcepacks/extracted`. `Decompile` takes the one named file out
+> of an archive into the folder its `decompType` maps to. Both fold in wave 85's `GetDirForModType` and
+> the ported `MMCZip` extract helpers. 6 tests: a whole-archive extract, a single-folder extract with the
+> `config/` prefix stripped, the fixed texture/resourcepack folders, a decomp yielding one file, and the
+> target-folder mapping. With this every mod-type outcome ATLauncher's installer produces is ported;
+> what remains is the top-level task threading manifest → cleaner → configs → mod plan → download →
+> extract together, and the browser UI.
 
 > **ATLauncher config archive (wave 102).** `AtlUrls` and `AtlConfigInstaller` (in `Launch/AtlInstall.cs`),
 > ported from ATLPackInstallTask's installConfigs / extractConfigs. `AtlUrls` builds the two per-version

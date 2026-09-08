@@ -429,6 +429,70 @@ public static class AtlModPlanner
     }
 }
 
+/// <summary>
+/// Unpacks the ATLauncher mod types that are not simply dropped in — extract and decompile — ported
+/// from ATLPackInstallTask's extractMods. An "extract" mod is an archive whose contents (or one folder
+/// of them) are unpacked into a target folder; a "decomp" mod is an archive from which one named file
+/// is taken. Both target folders come from the mod's own extractTo/decompType, mapped through
+/// <see cref="AtlInstall.GetDirForModType"/>.
+/// </summary>
+public static class AtlModExtractor
+{
+    /// <summary>The game-relative folder an extract mod's contents land in.</summary>
+    public static string ExtractTargetFolder(AtlVersionMod mod, string minecraftVersion)
+    {
+        ArgumentNullException.ThrowIfNull(mod);
+
+        return mod.Type switch
+        {
+            AtlModType.TexturePackExtract => "texturepacks/extracted",
+            AtlModType.ResourcePackExtract => "resourcepacks/extracted",
+
+            // A plain "extract" names where it goes; a type with no folder unpacks at the game root.
+            _ => AtlInstall.GetDirForModType(mod.ExtractTo, mod.ExtractToRaw, minecraftVersion) ?? string.Empty,
+        };
+    }
+
+    /// <summary>Unpacks an extract mod: the whole archive, or the one folder of it the mod names.</summary>
+    public static void Extract(InstancePaths paths, AtlVersionMod mod, string archivePath, string minecraftVersion)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        ArgumentNullException.ThrowIfNull(mod);
+
+        var folder = ExtractTargetFolder(mod, minecraftVersion);
+        var target = folder.Length == 0 ? paths.GameRoot : FileSystem.PathCombine(paths.GameRoot, folder);
+
+        // Only a plain "extract" restricts itself to a sub-folder of the archive; the leading slash the
+        // manifest sometimes writes is dropped, matching upstream.
+        var subFolder = mod.Type == AtlModType.Extract ? mod.ExtractFolder.TrimStart('/') : string.Empty;
+
+        if (MMCZip.ExtractDir(archivePath, subFolder, target) is null)
+        {
+            throw new LauncherException($"Failed to extract mod archive {archivePath}.");
+        }
+    }
+
+    /// <summary>Takes the one named file out of a decomp mod's archive.</summary>
+    public static void Decompile(InstancePaths paths, AtlVersionMod mod, string archivePath, string minecraftVersion)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        ArgumentNullException.ThrowIfNull(mod);
+
+        var folder = AtlInstall.GetDirForModType(mod.DecompType, mod.DecompTypeRaw, minecraftVersion) ?? string.Empty;
+
+        var target = folder.Length == 0
+            ? FileSystem.PathCombine(paths.GameRoot, mod.DecompFile)
+            : FileSystem.PathCombine(paths.GameRoot, folder, mod.DecompFile);
+
+        FileSystem.EnsureFilePathExists(target);
+
+        if (!MMCZip.ExtractFile(archivePath, mod.DecompFile, target))
+        {
+            throw new LauncherException($"Failed to take {mod.DecompFile} out of {archivePath}.");
+        }
+    }
+}
+
 /// <summary>The ATLauncher CDN URLs for one version of one pack. Ported from ATLPackInstallTask.</summary>
 public static class AtlUrls
 {
