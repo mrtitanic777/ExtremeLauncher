@@ -74,7 +74,16 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**383 of 758 files. 3,484 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**383 of 758 files. 3,488 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **ATLauncher config archive (wave 102).** `AtlUrls` and `AtlConfigInstaller` (in `Launch/AtlInstall.cs`),
+> ported from ATLPackInstallTask's installConfigs / extractConfigs. `AtlUrls` builds the two per-version
+> CDN URLs — the version manifest (Configs.json) and the config archive (Configs.zip) — off the ATL
+> download server. `AtlConfigInstaller.InstallAsync` fetches the archive, checks it against the version's
+> sha1 when one is given (a mismatch fails the install and leaves nothing extracted), and unpacks it into
+> the game folder; the temp download is always cleaned up. The client is injected, so it is driven in a
+> test with an in-memory zip and no network. 4 tests: both URLs, extraction into the game folder, a
+> matching sha1 accepted, and a mismatched one rejected with nothing written.
 
 > **ATLauncher update cleaner (wave 101).** `AtlUpdateCleaner.PlanDeletions` (in `Launch/AtlInstall.cs`),
 > ported from ATLPackInstallTask's deleteExistingFiles — the on-update cleanup that clears a pack's old
