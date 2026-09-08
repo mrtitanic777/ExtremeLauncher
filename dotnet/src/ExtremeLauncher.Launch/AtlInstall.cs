@@ -27,7 +27,10 @@
  */
 
 using ExtremeLauncher.Core;
+using ExtremeLauncher.Meta;
+using ExtremeLauncher.Minecraft;
 using ExtremeLauncher.ModPlatform;
+using ExtremeLauncher.Settings;
 
 namespace ExtremeLauncher.Launch;
 
@@ -125,5 +128,79 @@ public static class AtlInstall
 
         // Nothing recognisable: a synthetic coordinate, unique by md5, so it still installs.
         return "org.multimc.atlauncher:" + library.Md5 + ":1";
+    }
+}
+
+/// <summary>
+/// Stages an ATLauncher instance from a resolved pack version, ported from the tail of
+/// ATLPackInstallTask's install(): the pack profile (Minecraft plus the loader, from
+/// <see cref="PackComponents.FromAtl"/>, plus any jar mods) and instance.cfg, including the managed-pack
+/// fields that let the instance be updated later. The library and pack VersionFile components upstream
+/// also writes (createLibrariesComponent / createPackComponent) are a further wave; this is the part
+/// that turns the version metadata and downloaded jar mods into an instance.
+/// </summary>
+public static class AtlPackBuilder
+{
+    private const string ManagedPackType = "atlauncher";
+
+    public static void BuildInstance(
+        InstancePaths paths,
+        AtlPackVersion version,
+        RuntimeContext runtimeContext,
+        string packName,
+        string packSafeName,
+        string versionName,
+        IEnumerable<string>? jarMods = null,
+        string iconKey = "default",
+        string? displayName = null)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        ArgumentNullException.ThrowIfNull(version);
+
+        var profile = new PackProfile(runtimeContext);
+
+        foreach (var component in PackComponents.FromAtl(version))
+        {
+            profile.SetComponentVersion(component.Uid, component.Version, component.Important);
+        }
+
+        var jars = jarMods?.ToList() ?? [];
+
+        if (jars.Count != 0)
+        {
+            JarModInstaller.Install(paths, profile, jars);
+        }
+
+        profile.Save(paths.PackProfilePath);
+
+        var name = displayName is { Length: > 0 } ? displayName : packName;
+
+        var settings = new IniSettingsObject(paths.ConfigPath);
+        settings.RegisterSetting("name", string.Empty);
+        settings.RegisterSetting("iconKey", "default");
+        settings.RegisterSetting("InstanceType", string.Empty);
+        settings.Set("InstanceType", "OneSix");
+        settings.Set("name", name);
+
+        if (iconKey != "default")
+        {
+            settings.Set("iconKey", iconKey);
+        }
+
+        // The managed-pack fields, so the instance knows it came from ATLauncher and can be offered an
+        // update — the same keys InstanceSettings.SetManagedPack writes. The id is the pack's safe name,
+        // and both version fields carry the version name (ATLauncher has no separate numeric version id).
+        settings.RegisterSetting("ManagedPack", false);
+        settings.RegisterSetting("ManagedPackType", string.Empty);
+        settings.RegisterSetting("ManagedPackID", string.Empty);
+        settings.RegisterSetting("ManagedPackName", string.Empty);
+        settings.RegisterSetting("ManagedPackVersionID", string.Empty);
+        settings.RegisterSetting("ManagedPackVersionName", string.Empty);
+        settings.Set("ManagedPack", true);
+        settings.Set("ManagedPackType", ManagedPackType);
+        settings.Set("ManagedPackID", packSafeName);
+        settings.Set("ManagedPackName", packName);
+        settings.Set("ManagedPackVersionID", versionName);
+        settings.Set("ManagedPackVersionName", versionName);
     }
 }

@@ -74,7 +74,19 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**383 of 758 files. 3,461 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**383 of 758 files. 3,465 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **ATLauncher instance staging (wave 99).** `AtlPackBuilder.BuildInstance` (in `Launch/AtlInstall.cs`),
+> the staging tail of ATLPackInstallTask's install(): a resolved pack version becomes a pack profile and
+> instance.cfg, parallel to the Flame and FTB builders. The profile is the wave-98 `FromAtl` components
+> plus any downloaded jar mods (through `JarModInstaller`); instance.cfg carries the name, icon and the
+> managed-pack fields — type "atlauncher", id the pack's safe name, both version fields the version name
+> — the same keys `InstanceSettings.SetManagedPack` writes, so an installed pack can be offered updates.
+> The library and pack VersionFile components (createLibrariesComponent / createPackComponent) and the
+> network resolution around them are a later wave. 4 tests: a Forge pack's components and every
+> managed-pack field, jar mods laid in, a typed name override, and a non-default icon. ATLauncher now has
+> parsing (83), install decisions (85), components (98) and instance staging (99) — everything up to the
+> network orchestration.
 
 > **ATLauncher pack components (wave 98).** `PackComponents.FromAtl`, the component builder for an
 > ATLauncher pack version, ported from the loader block of ATLPackInstallTask's createInstance (the
