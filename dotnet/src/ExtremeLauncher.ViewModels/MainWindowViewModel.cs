@@ -55,6 +55,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IPackImporter? importer = null,
         IPackBrowser? browser = null,
         ILegacyFtbBrowser? legacyFtbBrowser = null,
+        IAtlBrowser? atlBrowser = null,
         ILauncherLogViewer? launcherLog = null,
         IAccountsUi? accounts = null,
         IGlobalSettingsUi? settings = null,
@@ -74,6 +75,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _importer = importer;
         _browser = browser;
         _legacyFtbBrowser = legacyFtbBrowser;
+        _atlBrowser = atlBrowser;
         _launcherLog = launcherLog;
         _accounts = accounts;
         _settings = settings;
@@ -143,6 +145,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly IPackBrowser? _browser;
 
     private readonly ILegacyFtbBrowser? _legacyFtbBrowser;
+
+    private readonly IAtlBrowser? _atlBrowser;
 
     private readonly ILauncherLogViewer? _launcherLog;
 
@@ -373,6 +377,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         var installed = await _legacyFtbBrowser!.BrowseAndInstallAsync(list).ConfigureAwait(true);
+
+        Instances.Reload();
+
+        if (installed.Length != 0)
+        {
+            Instances.Select(installed);
+        }
+
+        RaiseSelectionDependent();
+    }
+
+    /// <summary>Whether the ATLauncher browser can be opened.</summary>
+    public bool CanBrowseAtl => _atlBrowser is not null && !Launch.IsBusy;
+
+    /// <summary>Browses the ATLauncher catalogue and installs the chosen pack.</summary>
+    [RelayCommand]
+    public async Task BrowseAtlAsync()
+    {
+        if (!CanBrowseAtl || Instances.Source is not { } list)
+        {
+            return;
+        }
+
+        var installed = await _atlBrowser!.BrowseAndInstallAsync(list).ConfigureAwait(true);
 
         Instances.Reload();
 
@@ -973,6 +1001,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(CanImportPack));
         OnPropertyChanged(nameof(CanBrowsePacks));
         OnPropertyChanged(nameof(CanBrowseLegacyFtb));
+        OnPropertyChanged(nameof(CanBrowseAtl));
         OnPropertyChanged(nameof(HasDuplicationStatus));
         OnPropertyChanged(nameof(HasIndeterminateCopyProgress));
         OnPropertyChanged(nameof(CanUndoDelete));
@@ -1020,6 +1049,13 @@ public interface IPackBrowser
 
 /// <summary>Opens the classic (legacy) FTB browser and installs the chosen pack. Implemented by the app.</summary>
 public interface ILegacyFtbBrowser
+{
+    /// <summary>Returns the new instance's id, or empty when the user cancelled or it failed.</summary>
+    Task<string> BrowseAndInstallAsync(InstanceList list);
+}
+
+/// <summary>Opens the ATLauncher browser and installs the chosen pack. Implemented by the app.</summary>
+public interface IAtlBrowser
 {
     /// <summary>Returns the new instance's id, or empty when the user cancelled or it failed.</summary>
     Task<string> BrowseAndInstallAsync(InstanceList list);

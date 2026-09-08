@@ -74,7 +74,18 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**385 of 758 files. 3,506 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**387 of 758 files. 3,509 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **ATLauncher browser wired in (wave 107).** The UI layer that makes ATLauncher user-facing, mirroring
+> the classic-FTB browser: `AtlBrowserWindow` (`.axaml` + code-behind — catalogue on the left, details
+> and version on the right, live filter, fetch-on-open), `AppAtlBrowser` (adapts `AtlPackSource` to the
+> view-model's `IAtlPackSource`, shows the window, then stages `AtlInstallTask` behind the progress
+> window), an `IAtlBrowser` interface with a `BrowseAtl` command and `CanBrowseAtl` on
+> `MainWindowViewModel`, construction in `App.axaml.cs`, and an "ATLauncher" toolbar button. The install
+> URL safe name comes from the new tested `AtlPackIndex.InstallSafeName` (non-alphanumerics stripped,
+> case kept — distinct from the logo's SafeName). Build-verified through the Avalonia compiler (axaml,
+> bindings, wiring); 3 tests cover `InstallSafeName`. **ATLauncher is now a complete, user-facing feature
+> — search → pick → install** — matching CurseForge, on top of Modrinth and classic FTB.
 
 > **ATLauncher pack source (wave 106).** `AtlPackSource` (in ModPlatform), the fetch/parse layer under
 > the browser view-model — ported from AtlListModel's request. `ListUrl` names the pack list under the
