@@ -74,7 +74,18 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**382 of 758 files. 3,430 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**382 of 758 files. 3,432 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Modpack install provider guard (wave 92).** A correctness fix closing a gap wave 90 opened: the
+> browser now lists CurseForge modpacks, but `ModpackInstallTask` hands whatever it downloads to
+> `ModrinthImportTask`, which reads a .mrpack — a different format from a CurseForge pack's
+> manifest.json + overrides zip. Installing a CurseForge pack would therefore download it and then fail
+> confusingly deep in the Modrinth importer. `ModpackInstallTask.ExecuteAsync` now checks
+> `pack.Provider` first and refuses anything but Modrinth with a clear message, before any download.
+> CurseForge packs stay browsable (discovery has value); installing one waits on a Flame import path —
+> its manifest parser (`FlamePackManifest`) and file resolver (`FlameFileResolver`) are already ported,
+> the orchestration task is not. 2 tests: a CurseForge pack is refused before downloading, and a
+> Modrinth pack passes the guard to the next check.
 
 > **Mod dependency filtering (wave 91).** Ported the pure heart of
 > `GetModDependenciesTask::getDependenciesForVersion` to `ModPlatform/ModDependencies.cs`. When a mod
