@@ -246,4 +246,12 @@ public sealed class AtlPackIndexTests
     [Fact]
     public void AnEmptyListParsesToNothing()
         => Assert.Empty(AtlPackSource.Parse(Bytes("[]")));
+
+    /// <summary>The install safe name strips non-alphanumerics but keeps case — no ".png", unlike the logo.</summary>
+    [Theory]
+    [InlineData("Sky Factory 4", "SkyFactory4")]
+    [InlineData("All the Mods: 9!", "AlltheMods9")]
+    [InlineData("Vanilla", "Vanilla")]
+    public void TheInstallSafeNameStripsNonAlphanumericsKeepingCase(string name, string expected)
+        => Assert.Equal(expected, AtlPackIndex.InstallSafeName(name));
 }

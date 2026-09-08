@@ -74,6 +74,19 @@ public static partial class AtlPackIndex
     [GeneratedRegex("[^A-Za-z0-9]")]
     private static partial Regex NonAlphanumeric();
 
+    /// <summary>
+    /// The safe name the install URLs use — the pack name with everything but letters and digits
+    /// stripped, case preserved. Distinct from <see cref="AtlIndexedPack.SafeName"/>, which lowercases
+    /// and adds ".png" for the logo; upstream keeps these two different (ATLPackInstallTask vs
+    /// AtlListModel).
+    /// </summary>
+    public static string InstallSafeName(string packName)
+    {
+        ArgumentNullException.ThrowIfNull(packName);
+
+        return NonAlphanumeric().Replace(packName, string.Empty);
+    }
+
     public static AtlIndexedPack LoadIndexedPack(JsonObject obj)
     {
         ArgumentNullException.ThrowIfNull(obj);

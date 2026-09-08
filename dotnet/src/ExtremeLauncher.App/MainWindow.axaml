@@ -123,6 +123,15 @@
           </StackPanel>
         </Button>
 
+        <!-- The ATLauncher catalogue: another static pack list, with its own install flow. -->
+        <Button Command="{Binding BrowseAtlCommand}" IsEnabled="{Binding CanBrowseAtl}"
+                ToolTip.Tip="Browse the ATLauncher pack list">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <PathIcon Classes="tbi" Data="{StaticResource IconModpacks}" />
+            <TextBlock Text="ATLauncher" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+
         <!-- The other way somebody gets their first instance, and often the only way they ever make
              one. Needs no selection, for the same reason New does not. -->
         <Button Command="{Binding ImportPackCommand}" IsEnabled="{Binding CanImportPack}">
