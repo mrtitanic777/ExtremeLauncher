@@ -122,6 +122,12 @@ public sealed class ResourceSearchSource
                 {
                     ModrinthPackIndex.LoadIndexedPack(pack, obj);
                 }
+                else if (args.Type == ResourceType.Modpack)
+                {
+                    // A CurseForge MODPACK listing, not a mod: the modpack parser derives the logo name
+                    // from the slug and rejects a pack whose default file targets no Minecraft version.
+                    FlamePackIndex.LoadIndexedPack(pack, obj);
+                }
                 else
                 {
                     FlameModIndex.LoadIndexedPack(pack, obj);

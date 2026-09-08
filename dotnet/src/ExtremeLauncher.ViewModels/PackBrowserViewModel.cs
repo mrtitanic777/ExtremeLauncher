@@ -107,6 +107,17 @@ public sealed partial class PackBrowserViewModel : ObservableObject
     [ObservableProperty]
     private string _searchText = string.Empty;
 
+    /// <summary>
+    /// Which provider to search. Modrinth needs nothing; CurseForge needs an API key, so it is offered
+    /// but may be unavailable — <see cref="CanSearch"/> reflects that.
+    /// </summary>
+    [ObservableProperty]
+    private ResourceProvider _provider = ResourceProvider.Modrinth;
+
+    /// <summary>The providers the browser can search, in the order they are offered.</summary>
+    public IReadOnlyList<ResourceProvider> AvailableProviders { get; } =
+        [ResourceProvider.Modrinth, ResourceProvider.Flame];
+
     [ObservableProperty]
     private string _status = string.Empty;
 
@@ -140,7 +151,7 @@ public sealed partial class PackBrowserViewModel : ObservableObject
     [ObservableProperty]
     private PackVersionViewModel? _selectedVersion;
 
-    public bool CanSearch => _search is not null && !IsSearching;
+    public bool CanSearch => _search is not null && !IsSearching && _search.IsAvailable(Provider);
 
     public bool CanInstall => SelectedPack is not null && SelectedVersion is not null;
 
@@ -148,12 +159,32 @@ public sealed partial class PackBrowserViewModel : ObservableObject
 
     partial void OnIsSearchingChanged(bool value) => OnPropertyChanged(nameof(CanSearch));
 
+    /// <summary>
+    /// Switching provider clears the old provider's results — they are not comparable — and reports
+    /// when the newly chosen provider cannot be used, so the empty list is explained rather than blamed
+    /// on the query.
+    /// </summary>
+    partial void OnProviderChanged(ResourceProvider value)
+    {
+        OnPropertyChanged(nameof(CanSearch));
+        SearchCommand.NotifyCanExecuteChanged();
+
+        Results.Clear();
+        SelectedPack = null;
+        Selection.Clear();
+        SelectedVersion = null;
+
+        Status = _search is not null && !_search.IsAvailable(value)
+            ? _search.UnavailableReason(value)
+            : string.Empty;
+    }
+
     partial void OnReleasesOnlyChanged(bool value) => RebuildVersionList();
 
     /// <summary>What the caller installs, once the window has been accepted.</summary>
     public (IndexedPack Pack, IndexedVersion Version)? Chosen { get; private set; }
 
-    /// <summary>Searches Modrinth for modpacks.</summary>
+    /// <summary>Searches the chosen provider for modpacks.</summary>
     [RelayCommand(CanExecute = nameof(CanSearch))]
     public async Task SearchAsync()
     {
@@ -169,7 +200,7 @@ public sealed partial class PackBrowserViewModel : ObservableObject
 
         try
         {
-            var found = await _search.SearchAsync(ResourceProvider.Modrinth, SearchText, CancellationToken.None)
+            var found = await _search.SearchAsync(Provider, SearchText, CancellationToken.None)
                 .ConfigureAwait(true);
 
             // Dropped if stale, for the same reason as the mod browser: a shorter query's response is

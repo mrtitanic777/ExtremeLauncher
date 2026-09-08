@@ -40,17 +40,28 @@ public sealed class PackBrowserViewModelTests
 
         public int VersionLoads { get; private set; }
 
-        public bool IsAvailable(ResourceProvider provider) => true;
+        /// <summary>The provider the last search was made against.</summary>
+        public ResourceProvider? LastProvider { get; private set; }
 
-        public string UnavailableReason(ResourceProvider provider) => string.Empty;
+        /// <summary>Providers to report as unavailable (e.g. CurseForge with no API key).</summary>
+        public HashSet<ResourceProvider> Unavailable { get; } = [];
+
+        public bool IsAvailable(ResourceProvider provider) => !Unavailable.Contains(provider);
+
+        public string UnavailableReason(ResourceProvider provider)
+            => Unavailable.Contains(provider) ? $"{provider} needs an API key." : string.Empty;
 
         public Task<IReadOnlyList<IndexedPack>> SearchAsync(
             ResourceProvider provider,
             string query,
             CancellationToken cancellationToken)
-            => SearchThrows is not null
+        {
+            LastProvider = provider;
+
+            return SearchThrows is not null
                 ? Task.FromException<IReadOnlyList<IndexedPack>>(SearchThrows)
                 : Task.FromResult<IReadOnlyList<IndexedPack>>(Results);
+        }
 
         public Task LoadVersionsAsync(IndexedPack pack, CancellationToken cancellationToken)
         {
@@ -375,5 +386,70 @@ public sealed class PackBrowserViewModelTests
 
         Assert.False(vm.CanInstall);
         Assert.Empty(vm.Selection);
+    }
+
+    // ================================================================== provider selection
+
+    [Fact]
+    public void BothProvidersAreOffered()
+    {
+        var vm = new PackBrowserViewModel(new StubSearch());
+
+        Assert.Equal([ResourceProvider.Modrinth, ResourceProvider.Flame], vm.AvailableProviders);
+        Assert.Equal(ResourceProvider.Modrinth, vm.Provider);
+    }
+
+    [Fact]
+    public async Task SearchUsesTheSelectedProvider()
+    {
+        var search = new StubSearch();
+        var vm = new PackBrowserViewModel(search) { Provider = ResourceProvider.Flame };
+
+        await vm.SearchAsync();
+
+        Assert.Equal(ResourceProvider.Flame, search.LastProvider);
+    }
+
+    [Fact]
+    public async Task SwitchingProviderClearsTheOldResults()
+    {
+        var (vm, _) = await BrowsingAsync(("abc", "Fabulously Optimized", []));
+        Assert.NotEmpty(vm.Results);
+
+        vm.Provider = ResourceProvider.Flame;
+
+        Assert.Empty(vm.Results);
+        Assert.Null(vm.SelectedPack);
+        Assert.Null(vm.SelectedVersion);
+    }
+
+    [Fact]
+    public void AnUnavailableProviderCannotBeSearchedAndSaysWhy()
+    {
+        var search = new StubSearch();
+        search.Unavailable.Add(ResourceProvider.Flame);
+
+        var vm = new PackBrowserViewModel(search);
+        Assert.True(vm.CanSearch);
+
+        vm.Provider = ResourceProvider.Flame;
+
+        Assert.False(vm.CanSearch);
+        Assert.Equal("Flame needs an API key.", vm.Status);
+    }
+
+    [Fact]
+    public void ReturningToAnAvailableProviderClearsTheUnavailableNotice()
+    {
+        var search = new StubSearch();
+        search.Unavailable.Add(ResourceProvider.Flame);
+
+        var vm = new PackBrowserViewModel(search) { Provider = ResourceProvider.Flame };
+        Assert.False(vm.CanSearch);
+
+        vm.Provider = ResourceProvider.Modrinth;
+
+        Assert.True(vm.CanSearch);
+        Assert.Equal(string.Empty, vm.Status);
     }
 }

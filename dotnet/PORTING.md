@@ -74,7 +74,19 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**381 of 758 files. 3,418 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**381 of 758 files. 3,423 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **CurseForge in the modpack browser (wave 90).** Wired wave 88's `FlamePackIndex` into the UI. The
+> pack browser was Modrinth-only; it now has a provider picker (Modrinth / CurseForge).
+> `PackBrowserViewModel` gained a `Provider` (searches use it; switching clears the old provider's
+> results and, when CurseForge is unavailable for want of an API key, reports why through `CanSearch`
+> and `Status`) and an `AvailableProviders` list. `ResourceSearchSource` now routes a Flame **modpack**
+> listing through `FlamePackIndex` rather than the mod parser (`FlameModIndex`), so CurseForge modpacks
+> get the slug-based logo name and the no-good-file rejection; versions stay on `FlameModIndex`, whose
+> file parsing is a working superset. The window's provider ComboBox follows the mod browser's
+> static-items + code-behind-mapping pattern (shown as "CurseForge", the enum's `Flame`). 5 new view
+> model tests (provider drives the search, switching clears results, unavailable provider is explained,
+> both providers offered).
 
 > **Fabric/Quilt dependency override (wave 89).** Ported `GetModDependenciesTask::getOverride` to
 > `ModIndex.ApplyLoaderOverride`. The override *data* (`GetOverrideDependencies`) was already ported;
