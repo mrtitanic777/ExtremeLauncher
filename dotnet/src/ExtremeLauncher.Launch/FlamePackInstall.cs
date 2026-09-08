@@ -31,6 +31,7 @@ using ExtremeLauncher.Meta;
 using ExtremeLauncher.Minecraft;
 using ExtremeLauncher.ModPlatform;
 using ExtremeLauncher.Settings;
+using ExtremeLauncher.Tasks;
 
 namespace ExtremeLauncher.Launch;
 
@@ -211,4 +212,149 @@ public static class FlameDownloadPlanner
     /// <summary>A file's path under the game folder: its target folder plus its sanitised name.</summary>
     private static string RelativePath(FlameResolvedFile file)
         => $"{file.Entry.TargetFolder}/{FileSystem.RemoveInvalidPathChars(file.Version.FileName)}";
+}
+
+/// <summary>
+/// Installs a CurseForge pack from a downloaded archive: extract, resolve, stage and download. Ported
+/// from flame/FlameInstanceCreationTask, tying together the pieces the earlier waves ported —
+/// FlamePackManifest (parse), FlameFileResolver (resolve), FlamePackBuilder (stage) and
+/// FlameDownloadPlanner (plan). The resolver and HTTP client are injected so the whole task runs
+/// without hidden globals, and can be driven in a test with a stub resolver and local files.
+/// </summary>
+/// <remarks>
+/// TWO OF UPSTREAM'S INTERACTIONS ARE NOT HERE, on purpose. Blocked mods — files CurseForge will not
+/// serve to third parties — make the install fail with a message naming them and where to get them,
+/// rather than opening the "add these by hand" dialog; and optional mods are installed disabled rather
+/// than through a chooser. Both are UI flows that belong above this task; the download plan already
+/// supports a selection, so a chooser can be added without changing the task.
+/// </remarks>
+public sealed class FlameImportTask : LauncherTask, IInstanceTask
+{
+    private readonly string _archivePath;
+
+    private readonly IFlameResolverApi _resolver;
+
+    private readonly HttpClient _client;
+
+    private readonly RuntimeContext _runtimeContext;
+
+    private readonly string _iconKey;
+
+    private string _instanceName;
+
+    public FlameImportTask(
+        string archivePath,
+        IFlameResolverApi resolver,
+        HttpClient client,
+        RuntimeContext runtimeContext,
+        string instanceName = "",
+        string iconKey = "default",
+        string group = "")
+        : base("Installing modpack")
+    {
+        _archivePath = archivePath ?? throw new ArgumentNullException(nameof(archivePath));
+        _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+        _client = client ?? throw new ArgumentNullException(nameof(client));
+        _runtimeContext = runtimeContext;
+        _instanceName = instanceName;
+        _iconKey = iconKey;
+        Group = group;
+    }
+
+    public string StagingPath { get; set; } = string.Empty;
+
+    string IInstanceTask.Name => _instanceName.Length != 0 ? _instanceName : "Modpack";
+
+    public string Group { get; }
+
+    public bool ShouldOverride => false;
+
+    public string OriginalInstanceId => string.Empty;
+
+    /// <summary>How many files were fetched, once the install has run.</summary>
+    public int DownloadedCount { get; private set; }
+
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        if (StagingPath.Length == 0)
+        {
+            throw new LauncherException("No staging path was set.");
+        }
+
+        FileSystem.EnsureFolderPathExists(StagingPath);
+
+        SetStatus("Extracting modpack");
+
+        if (MMCZip.ExtractDir(_archivePath, StagingPath) is null)
+        {
+            throw new LauncherException($"Failed to extract the modpack archive {_archivePath}.");
+        }
+
+        var manifestPath = FileSystem.PathCombine(StagingPath, "manifest.json");
+
+        if (!File.Exists(manifestPath))
+        {
+            throw new LauncherException("The pack has no manifest.json.");
+        }
+
+        var manifest = FlamePack.Parse(await File.ReadAllBytesAsync(manifestPath, cancellationToken).ConfigureAwait(false));
+
+        if (_instanceName.Length == 0)
+        {
+            _instanceName = manifest.Name;
+        }
+
+        SetStatus("Resolving modpack files");
+
+        var resolved = await FlameFileResolver.ResolveAsync(manifest, _resolver, cancellationToken).ConfigureAwait(false);
+
+        // No optional chooser here: an optional file is installed disabled. See the class remarks.
+        var plan = FlameDownloadPlanner.Build(resolved, new HashSet<string>());
+
+        if (plan.Blocked.Count != 0)
+        {
+            throw new LauncherException(BlockedMessage(plan.Blocked));
+        }
+
+        var paths = new InstancePaths(StagingPath);
+
+        // Stage first (this moves the overrides folder in to become the game directory), then download
+        // the resolved files into it — the order upstream uses.
+        FlamePackBuilder.BuildFromExtracted(paths, manifest, _runtimeContext, _iconKey, _instanceName);
+
+        SetStatus($"Downloading {plan.Downloads.Count} files");
+
+        foreach (var download in plan.Downloads)
+        {
+            var target = FileSystem.PathCombine(StagingPath, download.RelativePath);
+            FileSystem.EnsureFilePathExists(target);
+
+            await DownloadAsync(download.Url, target, cancellationToken).ConfigureAwait(false);
+            DownloadedCount++;
+        }
+    }
+
+    private async Task DownloadAsync(string url, string destination, CancellationToken cancellationToken)
+    {
+        using var response = await _client
+            .GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .ConfigureAwait(false);
+
+        response.EnsureSuccessStatusCode();
+
+        await using var output = File.Create(destination);
+        await response.Content.CopyToAsync(output, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static string BlockedMessage(IReadOnlyList<FlameResolvedFile> blocked)
+    {
+        var names = blocked.Select(f =>
+        {
+            var where = f.ManualDownloadUrl.Length != 0 ? $" ({f.ManualDownloadUrl})" : string.Empty;
+            return $"  {f.Version.FileName}{where}";
+        });
+
+        return "These files are not available for download in third-party launchers and must be added by "
+               + $"hand:\n{string.Join('\n', names)}";
+    }
 }

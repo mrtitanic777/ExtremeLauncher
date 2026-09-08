@@ -74,7 +74,21 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**383 of 758 files. 3,449 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**383 of 758 files. 3,452 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Flame import orchestration (wave 95).** `FlameImportTask` (in `Launch/FlamePackInstall.cs`), the
+> `IInstanceTask` that ties waves 88/93/94 together into a working CurseForge install: extract the
+> archive, parse manifest.json (`FlamePack`), resolve every file id (`FlameFileResolver`, injected so
+> the task has no hidden globals), build the download plan (`FlameDownloadPlanner`), stage the instance
+> (`FlamePackBuilder` — overrides folder into the game dir, pack profile, instance.cfg), then download
+> the resolved files into it, in upstream's order. A blocked file fails the install with a message that
+> names it and where to fetch it, rather than opening a dialog; optional files install disabled. Both
+> interactions are UI flows deferred above the task — the plan already takes a selection. Tested
+> end-to-end with no network: a hand-built archive, a stub resolver, and an HttpClient whose handler
+> serves the downloads from memory — a pack extracts/resolves/stages/downloads into a working instance,
+> a blocked file fails and is named, and the name falls back to the manifest's. 3 tests. The CurseForge
+> import is now complete as a task; wiring it into the browser's install path (replacing wave 92's
+> Modrinth-only guard) and the two choosers are the remaining UI work.
 
 > **Flame download plan (wave 94).** The pure step between resolving a CurseForge pack's files and
 > fetching them, ported from FlameInstanceCreationTask's idResolverSucceeded/setupDownloadJob into
