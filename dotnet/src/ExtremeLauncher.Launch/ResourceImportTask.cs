@@ -103,7 +103,24 @@ public static class ResourceImport
         {
             FileSystem.EnsureFolderPathExists(folder);
 
-            var target = FileSystem.PathCombine(folder, Path.GetFileName(file));
+            /*
+             * A RESOURCE CAN BE A DIRECTORY, not only a jar or zip -- an unpacked resource pack, say.
+             * Its name is the folder's own, taken trailing-slash-safe: Path.GetFileName of a path
+             * ending in a separator is empty, which produced the bug upstream's test_1178 pins (the
+             * whole thing copied to a folder with no name).
+             */
+            var name = LeafName(file);
+
+            if (Directory.Exists(file))
+            {
+                var directoryTarget = UniqueName(folder, name, existing: p => Directory.Exists(p) || File.Exists(p));
+
+                CopyDirectory(file, directoryTarget);
+
+                return new ImportedResource(file, type, directoryTarget);
+            }
+
+            var target = FileSystem.PathCombine(folder, name);
 
             /*
              * A CLASHING NAME IS SUFFIXED rather than overwritten. Dropping a newer build of a mod
@@ -113,8 +130,8 @@ public static class ResourceImport
              */
             if (File.Exists(target))
             {
-                var stem = Path.GetFileNameWithoutExtension(file);
-                var extension = Path.GetExtension(file);
+                var stem = Path.GetFileNameWithoutExtension(name);
+                var extension = Path.GetExtension(name);
 
                 for (var n = 2; ; n++)
                 {
@@ -137,6 +154,42 @@ public static class ResourceImport
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             return new ImportedResource(file, type, string.Empty, e.Message);
+        }
+    }
+
+    /// <summary>
+    /// The last path segment, safe against a trailing separator. <see cref="Path.GetFileName(string)"/>
+    /// returns empty for a path ending in "/" or "\", so the separators are trimmed first.
+    /// </summary>
+    private static string LeafName(string path)
+        => Path.GetFileName(path.TrimEnd('/', '\\'));
+
+    /// <summary>A target path under <paramref name="folder"/> that does not yet exist, suffixed if needed.</summary>
+    private static string UniqueName(string folder, string name, Func<string, bool> existing)
+    {
+        var target = FileSystem.PathCombine(folder, name);
+
+        for (var n = 2; existing(target); n++)
+        {
+            target = FileSystem.PathCombine(folder, $"{name}-{n}");
+        }
+
+        return target;
+    }
+
+    /// <summary>Copies a directory tree into a new location.</summary>
+    private static void CopyDirectory(string source, string destination)
+    {
+        Directory.CreateDirectory(destination);
+
+        foreach (var directory in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
+        {
+            Directory.CreateDirectory(Path.Combine(destination, Path.GetRelativePath(source, directory)));
+        }
+
+        foreach (var sourceFile in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            File.Copy(sourceFile, Path.Combine(destination, Path.GetRelativePath(source, sourceFile)), overwrite: true);
         }
     }
 }
