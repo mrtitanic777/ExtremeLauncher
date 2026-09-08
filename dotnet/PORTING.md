@@ -74,7 +74,18 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**383 of 758 files. 3,452 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**383 of 758 files. 3,455 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Folder resource import (wave 97).** Closes the last Qt test without a dotnet equivalent —
+> ResourceFolderModel_test, whose test_1178 pins a real bug. Two fixes: `LocalResourceParse.Identify`
+> rejected every directory (its gate was `File.Exists`), so an unpacked resource pack or a folder world
+> was never recognised even though the parsers already read directories — it now accepts a path that
+> exists as a file OR a directory; and `ResourceImport` could only `File.Copy` a file, so it now copies
+> a directory tree whole, named by the folder's own leaf name taken **trailing-slash-safe**
+> (`Path.GetFileName` of ".../pack/" is empty, which is exactly the test_1178 trap — the whole pack
+> copied to a nameless folder), with the same clash-suffixing as files (`faithful`, then `faithful-2`).
+> 3 tests: a folder resource pack copied whole, a trailing-slash source keeping its name, and a folder
+> clash suffixed. Every Qt test file now has a dotnet counterpart.
 
 > **CurseForge install wired into the browser (wave 96).** The payoff for waves 88 and 93–95: picking a
 > CurseForge pack in the browser now installs it. `ModpackInstallTask` routes by the pack's provider —

@@ -274,4 +274,55 @@ public sealed class ResourceImportTests : IDisposable
         Assert.False(File.Exists(InGame("saves/upload.zip")));
         Assert.False(Directory.Exists(InGame("saves/MyWorld")));
     }
+
+    /// <summary>An unpacked resource pack (a directory, not a zip) in the "downloads" folder.</summary>
+    private string ResourcePackFolder(string name = "faithful")
+    {
+        var dir = Path.Combine(_downloads, name);
+        Directory.CreateDirectory(Path.Combine(dir, "assets", "minecraft"));
+
+        File.WriteAllText(
+            Path.Combine(dir, "pack.mcmeta"), """{"pack":{"pack_format":15,"description":"Faithful"}}""");
+        File.WriteAllText(Path.Combine(dir, "assets", "minecraft", "stone.png"), "not really a png");
+
+        return dir;
+    }
+
+    /*
+     * A RESOURCE CAN BE A DIRECTORY, and upstream's test_1178 pins the trap: a source path with a
+     * trailing slash. Path.GetFileName of ".../faithful/" is empty, so a naive import copies the whole
+     * pack to a folder with no name. The import must take the folder's own name either way.
+     */
+    [Fact]
+    public void AFolderResourcePackIsCopiedWholeUnderItsOwnName()
+    {
+        var result = Assert.Single(ResourceImport.Import(_paths, [ResourcePackFolder()]));
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(PackedResourceType.ResourcePack, result.Type);
+        Assert.True(File.Exists(InGame("resourcepacks/faithful/pack.mcmeta")));
+        Assert.True(File.Exists(InGame("resourcepacks/faithful/assets/minecraft/stone.png")));
+    }
+
+    [Fact]
+    public void ATrailingSlashOnAFolderSourceDoesNotLoseItsName()
+    {
+        var source = ResourcePackFolder() + Path.DirectorySeparatorChar;
+
+        var result = Assert.Single(ResourceImport.Import(_paths, [source]));
+
+        Assert.True(result.Succeeded);
+        Assert.True(File.Exists(InGame("resourcepacks/faithful/pack.mcmeta")));
+    }
+
+    [Fact]
+    public void AFolderResourcePackWithAClashingNameIsKeptAlongsideTheOldOne()
+    {
+        ResourceImport.Import(_paths, [ResourcePackFolder()]);
+        var second = Assert.Single(ResourceImport.Import(_paths, [ResourcePackFolder()]));
+
+        Assert.True(second.Succeeded);
+        Assert.True(Directory.Exists(InGame("resourcepacks/faithful")));
+        Assert.True(File.Exists(InGame("resourcepacks/faithful-2/pack.mcmeta")));
+    }
 }

@@ -100,7 +100,9 @@ public static class LocalResourceParse
     /// </remarks>
     public static PackedResourceType Identify(string path)
     {
-        if (path.Length == 0 || !File.Exists(path))
+        // A resource can be a file (a jar or zip) or a directory (an unpacked pack, a world save). The
+        // validators below handle both, so both are let through — only a path that is neither is refused.
+        if (path.Length == 0 || (!File.Exists(path) && !Directory.Exists(path)))
         {
             return PackedResourceType.Unknown;
         }
