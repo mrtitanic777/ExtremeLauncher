@@ -510,3 +510,73 @@ public static class TechnicPackSource
         return TechnicSearch.ParseSingle(root) is { } pack ? [pack] : [];
     }
 }
+
+/// <summary>The install-relevant detail of one Technic pack, from its modpack endpoint.</summary>
+public sealed class TechnicPackDetail
+{
+    /// <summary>The download URL: a zip for a single-zip pack, or the Solder API base for a Solder pack.</summary>
+    public string Url { get; set; } = string.Empty;
+
+    /// <summary>Whether <see cref="Url"/> is a Solder API base (versioned builds) rather than a single zip.</summary>
+    public bool IsSolder { get; set; }
+
+    public string MinecraftVersion { get; set; } = string.Empty;
+
+    public string WebsiteUrl { get; set; } = string.Empty;
+
+    public string Author { get; set; } = string.Empty;
+
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>The pack's current version — the only one a single-zip pack offers.</summary>
+    public string CurrentVersion { get; set; } = string.Empty;
+}
+
+/// <summary>Reads a Technic modpack detail document. Ported from TechnicPage's version-load handler.</summary>
+public static class TechnicDetail
+{
+    /// <summary>
+    /// Reads a pack's detail, or null when it names no installable source. A string <c>url</c> is a
+    /// single-zip pack; a non-string <c>url</c> with a string <c>solder</c> is a Solder pack (its
+    /// trailing slashes trimmed). Upstream requires the <c>url</c> key to be present at all — a Solder
+    /// response carries <c>"url": null</c> — so its absence is treated as "not a pack", kept as written.
+    /// </summary>
+    public static TechnicPackDetail? Parse(JsonObject root)
+    {
+        ArgumentNullException.ThrowIfNull(root);
+
+        if (!root.ContainsKey("url"))
+        {
+            return null;
+        }
+
+        string url;
+        bool isSolder;
+
+        if (root["url"] is JsonValue directValue && directValue.TryGetValue<string>(out var directUrl))
+        {
+            url = directUrl;
+            isSolder = false;
+        }
+        else if (root["solder"] is JsonValue solderValue && solderValue.TryGetValue<string>(out var solderUrl))
+        {
+            url = solderUrl.TrimEnd('/');
+            isSolder = true;
+        }
+        else
+        {
+            return null;
+        }
+
+        return new TechnicPackDetail
+        {
+            Url = url,
+            IsSolder = isSolder,
+            MinecraftVersion = Json.EnsureString(root, "minecraft"),
+            WebsiteUrl = Json.EnsureString(root, "platformUrl"),
+            Author = Json.EnsureString(root, "user"),
+            Description = Json.EnsureString(root, "description"),
+            CurrentVersion = Json.EnsureString(root, "version"),
+        };
+    }
+}

@@ -74,7 +74,18 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**388 of 758 files. 3,523 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**388 of 758 files. 3,528 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Technic pack detail (wave 110).** `TechnicDetail.Parse` (in ModPlatform), the piece that lets a
+> browsed Technic pack be installed — ported from TechnicPage's version-load handler. A pack's modpack
+> endpoint gives one of two shapes: a string `url` is a single-zip pack; a non-string `url` alongside a
+> string `solder` is a Solder pack (its trailing slashes trimmed). `Parse` returns a `TechnicPackDetail`
+> (url, isSolder, minecraft version, current version, author, website, description) or null when there is
+> no installable source. **Kept quirk:** upstream requires the `url` key to be *present* at all — a
+> Solder response carries `"url": null` — so its absence means "not a pack", diverging only in that it is
+> written down. 5 tests: a single-zip url, a null-url+solder pack with the slash trimmed, a single-zip
+> url keeping its slash, a missing url key, and a null url with no solder. This is the last parsing piece
+> Technic install needs; the window + app wiring (fetch detail, pick SingleZip vs Solder task) is next.
 
 > **Technic browser view-model (wave 109).** `TechnicBrowserViewModel` (ViewModels) and
 > `TechnicPackSource.SearchAsync` (ModPlatform). Unlike the FTB and ATLauncher browsers, Technic has a

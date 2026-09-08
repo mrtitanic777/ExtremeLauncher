@@ -355,3 +355,59 @@ public sealed class TechnicSearchTests
     public void ASingleErrorResponseIsNull()
         => Assert.Null(TechnicSearch.ParseSingle(Parse("""{ "error": "No such modpack" }""")));
 }
+
+public sealed class TechnicDetailTests
+{
+    private static System.Text.Json.Nodes.JsonObject Parse(string json)
+        => Json.RequireObject(Json.RequireDocument(Encoding.UTF8.GetBytes(json), "test"));
+
+    [Fact]
+    public void AStringUrlIsASingleZipPack()
+    {
+        var detail = TechnicDetail.Parse(Parse("""
+            { "url": "https://x.invalid/pack.zip", "minecraft": "1.7.10", "version": "1.2.3",
+              "user": "Author", "platformUrl": "https://technicpack.net/modpack/x",
+              "description": "A pack." }
+            """));
+
+        Assert.NotNull(detail);
+        Assert.False(detail!.IsSolder);
+        Assert.Equal("https://x.invalid/pack.zip", detail.Url);
+        Assert.Equal("1.7.10", detail.MinecraftVersion);
+        Assert.Equal("1.2.3", detail.CurrentVersion);
+        Assert.Equal("Author", detail.Author);
+        Assert.Equal("https://technicpack.net/modpack/x", detail.WebsiteUrl);
+        Assert.Equal("A pack.", detail.Description);
+    }
+
+    /// <summary>A null url with a solder url is a Solder pack, its trailing slashes trimmed.</summary>
+    [Fact]
+    public void ANullUrlWithSolderIsASolderPack()
+    {
+        var detail = TechnicDetail.Parse(Parse("""
+            { "url": null, "solder": "https://solder.invalid/api/", "minecraft": "1.6.4", "version": "2.0" }
+            """));
+
+        Assert.NotNull(detail);
+        Assert.True(detail!.IsSolder);
+        Assert.Equal("https://solder.invalid/api", detail.Url); // trailing slash trimmed
+    }
+
+    /// <summary>A single-zip URL is not slash-trimmed — only Solder is.</summary>
+    [Fact]
+    public void ASingleZipUrlKeepsAnyTrailingSlash()
+    {
+        var detail = TechnicDetail.Parse(Parse("""{ "url": "https://x.invalid/pack/" }"""));
+
+        Assert.Equal("https://x.invalid/pack/", detail!.Url);
+    }
+
+    /// <summary>Upstream requires the url key present at all, even for Solder packs.</summary>
+    [Fact]
+    public void AMissingUrlKeyIsNotAPack()
+        => Assert.Null(TechnicDetail.Parse(Parse("""{ "solder": "https://solder.invalid/api" }""")));
+
+    [Fact]
+    public void ANullUrlWithNoSolderIsNotAPack()
+        => Assert.Null(TechnicDetail.Parse(Parse("""{ "url": null }""")));
+}
