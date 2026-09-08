@@ -184,3 +184,55 @@ public static class AtlShareCodeReader
         return response;
     }
 }
+
+/// <summary>
+/// Reads and fetches the ATLauncher pack list (launcher/json/packsnew.json), a flat array of the pack
+/// objects <see cref="AtlPackIndex.LoadIndexedPack"/> parses.
+/// </summary>
+public static class AtlPackSource
+{
+    /// <summary>The pack-list URL under the ATLauncher download server.</summary>
+    public static string ListUrl(string serverBaseUrl) => $"{serverBaseUrl}launcher/json/packsnew.json";
+
+    /// <summary>
+    /// Parses the pack list. A pack that fails to read is skipped rather than aborting the whole list —
+    /// upstream returns on the first bad entry, dropping every pack after it, which one malformed record
+    /// should not be able to do.
+    /// </summary>
+    public static List<AtlIndexedPack> Parse(byte[] data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+
+        var packs = new List<AtlIndexedPack>();
+
+        foreach (var element in Json.RequireArrayValue(Json.RequireDocument(data, "packsnew.json")))
+        {
+            if (element is not JsonObject obj)
+            {
+                continue;
+            }
+
+            try
+            {
+                packs.Add(AtlPackIndex.LoadIndexedPack(obj));
+            }
+            catch (JsonException)
+            {
+                // A malformed pack is skipped; the rest of the list still loads.
+            }
+        }
+
+        return packs;
+    }
+
+    /// <summary>Fetches and parses the pack list from the ATLauncher server.</summary>
+    public static async Task<IReadOnlyList<AtlIndexedPack>> FetchAsync(
+        HttpClient client, string serverBaseUrl, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+
+        var data = await client.GetByteArrayAsync(ListUrl(serverBaseUrl), cancellationToken).ConfigureAwait(false);
+
+        return Parse(data);
+    }
+}
