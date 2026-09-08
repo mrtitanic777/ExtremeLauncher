@@ -124,6 +124,12 @@ public sealed record BuildConfig
     /// <summary>ATLauncher's API base, used for share codes. From BuildConfig's ATL_API_BASE_URL.</summary>
     public string AtlApiBaseUrl { get; init; } = "https://api.atlauncher.com/v1/";
 
+    /// <summary>Technic's platform API base — trending, search and modpack detail. From TECHNIC_API_BASE_URL.</summary>
+    public string TechnicApiBaseUrl { get; init; } = "https://api.technicpack.net/";
+
+    /// <summary>The launcher build Technic's API is asked to answer as. From TECHNIC_API_BUILD.</summary>
+    public string TechnicApiBuild { get; init; } = "multimc";
+
     /// <summary>Where the news toolbar fetches from.</summary>
     /// <remarks>
     /// The fork's own CMake default (Launcher_NEWS_RSS_URL). Called RSS everywhere upstream -- the
