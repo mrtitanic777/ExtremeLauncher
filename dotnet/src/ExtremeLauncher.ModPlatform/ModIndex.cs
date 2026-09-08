@@ -237,6 +237,47 @@ public static class ModIndex
         new("qvIfYCYJ", "P7dR8mSH", "API", ResourceProvider.Modrinth),
         new("lwVhp9o5", "Ha28R6CL", "KotlinLibraries", ResourceProvider.Modrinth),
     ];
+
+    /// <summary>
+    /// Substitutes a loader's API dependency for the right one when Fabric and Quilt disagree. Ported
+    /// from GetModDependenciesTask::getOverride.
+    /// </summary>
+    /// <remarks>
+    /// On Quilt, a mod that asks for Fabric API is redirected to QSL; on Fabric, one that asks for the
+    /// Quilt package is redirected back to Fabric API. Quilt wins when both loader bits are set, matching
+    /// upstream. A dependency that matches no override, or a loader set that is neither Fabric nor Quilt,
+    /// is returned unchanged. A substituted dependency keeps its <see cref="Dependency.Type"/> but drops
+    /// its version, exactly as upstream constructs it.
+    /// </remarks>
+    public static Dependency ApplyLoaderOverride(Dependency dependency, ResourceProvider provider, ModLoaderTypes loaders)
+    {
+        ArgumentNullException.ThrowIfNull(dependency);
+
+        var isQuilt = loaders.HasFlag(ModLoaderTypes.Quilt);
+
+        if (!isQuilt && !loaders.HasFlag(ModLoaderTypes.Fabric))
+        {
+            return dependency;
+        }
+
+        foreach (var over in GetOverrideDependencies())
+        {
+            // On Quilt we look for the mod's Fabric-API request and hand back Quilt's; on Fabric, the
+            // reverse.
+            var lookFor = isQuilt ? over.Fabric : over.Quilt;
+
+            if (over.Provider == provider && dependency.AddonId == lookFor)
+            {
+                return new Dependency
+                {
+                    AddonId = isQuilt ? over.Quilt : over.Fabric,
+                    Type = dependency.Type,
+                };
+            }
+        }
+
+        return dependency;
+    }
 }
 
 /// <summary>A Fabric project id and the Quilt project that replaces it.</summary>

@@ -74,7 +74,18 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**381 of 758 files. 3,410 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**381 of 758 files. 3,418 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Fabric/Quilt dependency override (wave 89).** Ported `GetModDependenciesTask::getOverride` to
+> `ModIndex.ApplyLoaderOverride`. The override *data* (`GetOverrideDependencies`) was already ported;
+> this is the loader-aware substitution that uses it. Quilt runs Fabric mods, so a Fabric mod installed
+> on Quilt asks for Fabric API — the wrong package there, which breaks the pack alongside QSL. On Quilt
+> a Fabric-API dependency is redirected to the Quilt one; on Fabric, a Quilt-package request is
+> redirected back; Quilt wins when both loader bits are set. A dependency that matches no override, a
+> provider mismatch, or a loader set that is neither Fabric nor Quilt is returned unchanged; a
+> substituted one keeps its dependency type but drops its version, exactly as upstream builds it. 8
+> tests over both providers' tables, both directions, the precedence rule, and every pass-through case.
+> (No new file — the method joins the existing `ModIndex`.)
 
 > **CurseForge modpack index (wave 88).** Ported `flame/FlamePackIndex.cpp` to
 > `ModPlatform/FlamePackIndex.cs` — the CurseForge *modpack* listing parser, distinct from the already
