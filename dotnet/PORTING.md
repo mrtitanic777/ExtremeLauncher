@@ -74,7 +74,17 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**384 of 758 files. 3,496 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**385 of 758 files. 3,502 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **ATLauncher browser view-model (wave 105).** `AtlBrowserViewModel` (in ViewModels), the counterpart to
+> the legacy-FTB browser and built the same way: an `IAtlPackSource` fetches the whole catalogue
+> (packsnew.json) once, the rows are filtered in memory, a pack's versions come with it, and picking a
+> pack + version hands the choice back through `Chosen` for the app to run `AtlInstallTask`. "System"
+> packs (ATLauncher's own scaffolding) are dropped; a versionless pack cannot be installed; a typed name
+> overrides the pack's own; each row is labelled public/private. 6 tests over a stub source: loading and
+> hiding system packs, in-memory search, version listing with a default, the versionless-not-installable
+> case, Accept recording the choice, and the typed-name override. The window and app wiring (fetch
+> packsnew.json, run the install behind the progress window) are the remaining UI step.
 
 > **ATLauncher install orchestration (wave 104).** `AtlInstallTask` (new `Launch/AtlInstallTask.cs`), the
 > top-level `IInstanceTask` that threads every earlier ATLauncher wave together into a working install:
