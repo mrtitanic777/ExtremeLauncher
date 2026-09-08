@@ -14,10 +14,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
- * The browser can list CurseForge packs (the modpack index is parsed) but installing one is fed to the
- * Modrinth importer, which reads a different format. These pin the provider guard: a non-Modrinth pack
- * is refused with a clear message before anything is downloaded, and a Modrinth pack is let through to
- * the next check. Neither test touches the network.
+ * Both providers the browser offers are now installable — Modrinth through its importer, CurseForge
+ * through the Flame import task. These pin that the install routes by provider: each provider reaches
+ * the download step (shown by the empty-URL check firing), rather than one being refused. Neither test
+ * touches the network.
  */
 
 using ExtremeLauncher.ModPlatform;
@@ -35,28 +35,16 @@ public sealed class ModpackInstallTaskTests
         return (pack, version);
     }
 
-    [Fact]
-    public async Task ACurseForgePackIsRefusedBeforeAnyDownload()
-    {
-        var (pack, version) = PackAndVersion(ResourceProvider.Flame, "https://x.invalid/pack.zip");
-        using var client = new HttpClient();
-
-        var task = new ModpackInstallTask(client, pack, version) { StagingPath = Path.GetTempPath() };
-
-        Assert.False(await task.RunAsync());
-        Assert.False(task.WasSuccessful);
-        Assert.Contains("not supported yet", task.FailReason, StringComparison.Ordinal);
-        Assert.Contains("Flame", task.FailReason, StringComparison.Ordinal);
-    }
-
     /// <summary>
-    /// A Modrinth pack passes the provider guard and reaches the next check — proven here by an empty
-    /// download URL, whose distinct message shows the guard let it through rather than stopping it.
+    /// Each provider passes the guard and reaches the download step — proven by an empty download URL,
+    /// whose message only fires once the install has accepted the provider and gone looking for a file.
     /// </summary>
-    [Fact]
-    public async Task AModrinthPackPassesTheProviderGuard()
+    [Theory]
+    [InlineData(ResourceProvider.Modrinth)]
+    [InlineData(ResourceProvider.Flame)]
+    public async Task EachProviderReachesTheDownloadStep(ResourceProvider provider)
     {
-        var (pack, version) = PackAndVersion(ResourceProvider.Modrinth, string.Empty);
+        var (pack, version) = PackAndVersion(provider, string.Empty);
         using var client = new HttpClient();
 
         var task = new ModpackInstallTask(client, pack, version) { StagingPath = Path.GetTempPath() };

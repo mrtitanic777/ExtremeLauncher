@@ -76,6 +76,17 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 **383 of 758 files. 3,452 passing, 15 skipped.** (12 source projects, 12 test projects.)
 
+> **CurseForge install wired into the browser (wave 96).** The payoff for waves 88 and 93–95: picking a
+> CurseForge pack in the browser now installs it. `ModpackInstallTask` routes by the pack's provider —
+> Modrinth through `ModrinthImportTask`, CurseForge through `FlameImportTask` (its resolver built from
+> `FlameApi` + `ModrinthApi` the same way the browser's search is), both behind the shared pack download
+> and the progress window. Wave 92's Modrinth-only guard is gone, now refusing only a provider that is
+> neither. Progress and status forward from whichever importer runs, and `DownloadedCount` reads from
+> whichever ran. The blocked-mod and optional-mod choosers are still deferred (a blocked file fails with
+> a named message; optional files install disabled). Tests updated: both providers now reach the download
+> step rather than one being refused. CurseForge modpacks are now a working end-to-end feature in the
+> GUI (given a `flameApiKey`), from search to installed instance.
+
 > **Flame import orchestration (wave 95).** `FlameImportTask` (in `Launch/FlamePackInstall.cs`), the
 > `IInstanceTask` that ties waves 88/93/94 together into a working CurseForge install: extract the
 > archive, parse manifest.json (`FlamePack`), resolve every file id (`FlameFileResolver`, injected so
