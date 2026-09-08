@@ -74,7 +74,20 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**387 of 758 files. 3,509 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**387 of 758 files. 3,517 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Technic search (wave 108).** `TechnicSearch` (in ModPlatform), the discovery layer for a Technic
+> browser, ported from TechnicModel — the last unported Technic piece (install and version parsing were
+> waves 81–82). `SearchUrl` turns a search term into a platform-API URL and a mode: an empty term is the
+> trending list, a "#slug" or a full api.technicpack.net/modpack URL is one specific pack (http upgraded
+> to https), anything else is a text search; `TechnicApiBaseUrl`/`TechnicApiBuild` were added to
+> BuildConfig. `ParseList` reads a trending/search response into pack rows (skipping the vanilla entry,
+> deriving each logo name from the slug + icon URL extension, using the literal "null" upstream uses when
+> there is no icon); `ParseSingle` reads one pack, returning null on an error response. The optional
+> analytics client id upstream appends is dropped (it doubles the query's "?"). 8 tests over every URL
+> shape, the list parse with vanilla skipped and the no-icon case, and the single parse with and without
+> an error. Technic's discovery is now ported; a browser VM/window (the FTB/ATLauncher pattern) is what
+> remains to make it user-facing.
 
 > **ATLauncher browser wired in (wave 107).** The UI layer that makes ATLauncher user-facing, mirroring
 > the classic-FTB browser: `AtlBrowserWindow` (`.axaml` + code-behind — catalogue on the left, details

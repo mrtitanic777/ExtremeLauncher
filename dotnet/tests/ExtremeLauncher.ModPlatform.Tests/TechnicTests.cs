@@ -263,3 +263,95 @@ public sealed class TechnicVersionJsonTests
     public void APackWithNoLibrariesAtAllHasNoLoader()
         => Assert.Null(TechnicVersionJson.DetectLoader(Parse("""{ "inheritsFrom": "1.20.1" }""")));
 }
+
+public sealed class TechnicSearchTests
+{
+    private static System.Text.Json.Nodes.JsonObject Parse(string json)
+        => Json.RequireObject(Json.RequireDocument(Encoding.UTF8.GetBytes(json), "test"));
+
+    private const string Base = "https://api.technicpack.net/";
+
+    [Fact]
+    public void AnEmptyTermIsTheTrendingList()
+    {
+        var (url, mode) = TechnicSearch.SearchUrl(Base, "multimc", string.Empty);
+
+        Assert.Equal("https://api.technicpack.net/trending?build=multimc", url);
+        Assert.Equal(TechnicSearchMode.List, mode);
+    }
+
+    [Fact]
+    public void APlainTermIsASearch()
+    {
+        var (url, mode) = TechnicSearch.SearchUrl(Base, "multimc", "tekkit");
+
+        Assert.Equal("https://api.technicpack.net/search?build=multimc&q=tekkit", url);
+        Assert.Equal(TechnicSearchMode.List, mode);
+    }
+
+    [Fact]
+    public void AHashTermIsOnePackBySlug()
+    {
+        var (url, mode) = TechnicSearch.SearchUrl(Base, "multimc", "#tekkit");
+
+        Assert.Equal("https://api.technicpack.net/modpack/tekkit?build=multimc", url);
+        Assert.Equal(TechnicSearchMode.Single, mode);
+    }
+
+    [Fact]
+    public void AnHttpModpackUrlIsUpgradedToHttpsAndSingle()
+    {
+        var (url, mode) = TechnicSearch.SearchUrl(Base, "multimc", "http://api.technicpack.net/modpack/tekkit");
+
+        Assert.Equal("https://api.technicpack.net/modpack/tekkit?build=multimc", url);
+        Assert.Equal(TechnicSearchMode.Single, mode);
+    }
+
+    [Fact]
+    public void AnHttpsModpackUrlIsSingle()
+    {
+        var (url, mode) = TechnicSearch.SearchUrl(Base, "multimc", "https://api.technicpack.net/modpack/tekkit");
+
+        Assert.Equal("https://api.technicpack.net/modpack/tekkit?build=multimc", url);
+        Assert.Equal(TechnicSearchMode.Single, mode);
+    }
+
+    [Fact]
+    public void AListResponseIsReadAndVanillaIsSkipped()
+    {
+        var packs = TechnicSearch.ParseList(Parse("""
+            { "modpacks": [
+                { "name": "Tekkit", "slug": "tekkit", "iconUrl": "https://x.invalid/icons/tekkit.png" },
+                { "name": "Vanilla", "slug": "vanilla", "iconUrl": "https://x.invalid/v.png" },
+                { "name": "Hexxit", "slug": "hexxit", "iconUrl": "null" }
+            ] }
+            """));
+
+        Assert.Equal(["Tekkit", "Hexxit"], packs.Select(p => p.Name));
+        Assert.Equal("tekkit.png", packs[0].LogoName);
+        Assert.Equal("https://x.invalid/icons/tekkit.png", packs[0].LogoUrl);
+
+        // No icon: the literal "null" upstream uses, for both fields.
+        Assert.Equal("null", packs[1].LogoName);
+        Assert.Equal("null", packs[1].LogoUrl);
+    }
+
+    [Fact]
+    public void ASingleResponseIsReadWithItsIcon()
+    {
+        var pack = TechnicSearch.ParseSingle(Parse("""
+            { "displayName": "Tekkit Classic", "name": "tekkit",
+              "icon": { "url": "https://x.invalid/icons/tekkit.png" } }
+            """));
+
+        Assert.NotNull(pack);
+        Assert.Equal("Tekkit Classic", pack!.Name);
+        Assert.Equal("tekkit", pack.Slug);
+        Assert.Equal("tekkit.png", pack.LogoName);
+    }
+
+    /// <summary>An error response (an unknown pack) yields null.</summary>
+    [Fact]
+    public void ASingleErrorResponseIsNull()
+        => Assert.Null(TechnicSearch.ParseSingle(Parse("""{ "error": "No such modpack" }""")));
+}

@@ -332,3 +332,155 @@ public static class TechnicVersionJson
         return string.Join(separator, fields[start..(last + 1)]);
     }
 }
+
+// ================================================================== discovery
+
+/// <summary>How a Technic search term is interpreted: a list of results, or one named pack.</summary>
+public enum TechnicSearchMode
+{
+    List,
+    Single,
+}
+
+/// <summary>One Technic modpack as the platform API lists it.</summary>
+public sealed class TechnicModpack
+{
+    public string Name { get; set; } = string.Empty;
+
+    public string Slug { get; set; } = string.Empty;
+
+    /// <summary>The icon URL, or "null" (the literal string upstream uses) when there is none.</summary>
+    public string LogoUrl { get; set; } = "null";
+
+    /// <summary>The icon filename: the slug plus the URL's extension, or "null" when there is no icon.</summary>
+    public string LogoName { get; set; } = "null";
+
+    public bool Broken { get; set; }
+}
+
+/// <summary>Builds Technic platform-API search URLs and reads their responses. Ported from TechnicModel.</summary>
+public static class TechnicSearch
+{
+    /// <summary>The API URL for a search term, and how its response should be read.</summary>
+    /// <remarks>
+    /// An empty term is the trending list; a term beginning "#" or a full api.technicpack.net/modpack
+    /// URL is one specific pack; anything else is a text search. The analytics client id upstream can
+    /// append is dropped — it is optional and its placement doubles the query's "?".
+    /// </remarks>
+    public static (string Url, TechnicSearchMode Mode) SearchUrl(string apiBaseUrl, string apiBuild, string term)
+    {
+        ArgumentNullException.ThrowIfNull(apiBaseUrl);
+        ArgumentNullException.ThrowIfNull(term);
+
+        const string httpPrefix = "http://api.technicpack.net/modpack/";
+        const string httpsPrefix = "https://api.technicpack.net/modpack/";
+
+        if (term.Length == 0)
+        {
+            return ($"{apiBaseUrl}trending?build={apiBuild}", TechnicSearchMode.List);
+        }
+
+        if (term.StartsWith(httpPrefix, StringComparison.Ordinal))
+        {
+            // Drop the "http://" (7 characters) and ask over https.
+            return ($"https://{term[7..]}?build={apiBuild}", TechnicSearchMode.Single);
+        }
+
+        if (term.StartsWith(httpsPrefix, StringComparison.Ordinal))
+        {
+            return ($"{term}?build={apiBuild}", TechnicSearchMode.Single);
+        }
+
+        if (term.StartsWith('#'))
+        {
+            return ($"https://api.technicpack.net/modpack/{term[1..]}?build={apiBuild}", TechnicSearchMode.Single);
+        }
+
+        return ($"{apiBaseUrl}search?build={apiBuild}&q={term}", TechnicSearchMode.List);
+    }
+
+    /// <summary>Reads a trending/search response into a list of packs, skipping the vanilla entry.</summary>
+    public static List<TechnicModpack> ParseList(JsonObject root)
+    {
+        ArgumentNullException.ThrowIfNull(root);
+
+        var packs = new List<TechnicModpack>();
+
+        foreach (var element in Json.RequireArray(root, "modpacks"))
+        {
+            var obj = Json.RequireObject(element);
+            var slug = Json.RequireString(obj, "slug");
+
+            // Vanilla is offered through the normal version list, not the Technic browser.
+            if (slug == "vanilla")
+            {
+                continue;
+            }
+
+            packs.Add(FromListEntry(Json.RequireString(obj, "name"), slug, Json.EnsureString(obj, "iconUrl", "null")));
+        }
+
+        return packs;
+    }
+
+    /// <summary>
+    /// Reads a single-pack response, or null when the API returned an error (an unknown pack).
+    /// </summary>
+    public static TechnicModpack? ParseSingle(JsonObject root)
+    {
+        ArgumentNullException.ThrowIfNull(root);
+
+        if (root.ContainsKey("error"))
+        {
+            return null;
+        }
+
+        var slug = Json.RequireString(root, "name");
+        var pack = new TechnicModpack { Name = Json.RequireString(root, "displayName"), Slug = slug };
+
+        if (root.ContainsKey("icon"))
+        {
+            var iconUrl = Json.RequireString(Json.RequireObject(root, "icon"), "url");
+            pack.LogoUrl = iconUrl;
+            pack.LogoName = slug + "." + SuffixFromUrl(iconUrl);
+        }
+
+        return pack;
+    }
+
+    private static TechnicModpack FromListEntry(string name, string slug, string iconUrl)
+    {
+        var pack = new TechnicModpack { Name = name, Slug = slug };
+
+        if (iconUrl != "null")
+        {
+            pack.LogoUrl = iconUrl;
+            pack.LogoName = slug + "." + SuffixFromUrl(iconUrl);
+        }
+
+        return pack;
+    }
+
+    /// <summary>The file extension of a URL's last path segment — QFileInfo::suffix, empty when none.</summary>
+    private static string SuffixFromUrl(string url)
+    {
+        var path = url;
+        var cut = path.IndexOfAny(['?', '#']);
+
+        if (cut >= 0)
+        {
+            path = path[..cut];
+        }
+
+        var lastSlash = path.LastIndexOf('/');
+
+        if (lastSlash >= 0)
+        {
+            path = path[(lastSlash + 1)..];
+        }
+
+        var lastDot = path.LastIndexOf('.');
+
+        return lastDot >= 0 ? path[(lastDot + 1)..] : string.Empty;
+    }
+}
