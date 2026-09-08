@@ -205,4 +205,45 @@ public sealed class AtlPackIndexTests
         Assert.Equal(string.Empty, version.Loader.Type);
         Assert.Equal(string.Empty, version.Messages.Install);
     }
+
+    // ================================================================== pack source
+
+    private static byte[] Bytes(string json) => System.Text.Encoding.UTF8.GetBytes(json);
+
+    [Fact]
+    public void TheListUrlIsUnderTheServer()
+        => Assert.Equal(
+            "https://atl.invalid/atl/launcher/json/packsnew.json", AtlPackSource.ListUrl("https://atl.invalid/atl/"));
+
+    [Fact]
+    public void ParsingReadsEveryPackInTheArray()
+    {
+        var packs = AtlPackSource.Parse(Bytes("""
+            [
+              { "id": 1, "position": 1, "name": "One", "type": "public", "versions": [] },
+              { "id": 2, "position": 2, "name": "Two", "type": "private", "versions": [] }
+            ]
+            """));
+
+        Assert.Equal(["One", "Two"], packs.Select(p => p.Name));
+    }
+
+    /// <summary>A malformed pack is skipped, and the rest of the list still loads.</summary>
+    [Fact]
+    public void AMalformedPackIsSkippedNotFatal()
+    {
+        var packs = AtlPackSource.Parse(Bytes("""
+            [
+              { "id": 1, "position": 1, "name": "Good", "type": "public", "versions": [] },
+              { "id": 2, "position": 2, "type": "public", "versions": [] },
+              { "id": 3, "position": 3, "name": "AlsoGood", "type": "public", "versions": [] }
+            ]
+            """));
+
+        Assert.Equal(["Good", "AlsoGood"], packs.Select(p => p.Name));
+    }
+
+    [Fact]
+    public void AnEmptyListParsesToNothing()
+        => Assert.Empty(AtlPackSource.Parse(Bytes("[]")));
 }

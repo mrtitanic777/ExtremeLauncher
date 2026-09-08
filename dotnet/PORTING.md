@@ -74,7 +74,16 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**385 of 758 files. 3,502 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**385 of 758 files. 3,506 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **ATLauncher pack source (wave 106).** `AtlPackSource` (in ModPlatform), the fetch/parse layer under
+> the browser view-model — ported from AtlListModel's request. `ListUrl` names the pack list under the
+> ATLauncher download server (launcher/json/packsnew.json), `Parse` reads the flat array of pack objects
+> through `AtlPackIndex.LoadIndexedPack`, and `FetchAsync` ties them together over an injected client.
+> **Deliberate divergence:** a malformed pack is skipped and the rest of the list still loads — upstream
+> returns on the first bad entry, dropping every pack after it, which one bad record should not be able
+> to do. 4 tests: the URL, a full array parsed, a malformed pack skipped with the rest surviving, and the
+> empty list. Only the browser window and app wiring remain to make ATLauncher user-facing.
 
 > **ATLauncher browser view-model (wave 105).** `AtlBrowserViewModel` (in ViewModels), the counterpart to
 > the legacy-FTB browser and built the same way: an `IAtlPackSource` fetches the whole catalogue
