@@ -35,6 +35,8 @@
 
 using System.Text.RegularExpressions;
 
+using ExtremeLauncher.Core;
+
 namespace ExtremeLauncher.ModPlatform;
 
 /// <summary>One entry of the component list an imported instance starts from.</summary>
@@ -119,6 +121,44 @@ public static partial class PackComponents
             && ResolveLoader(loader.Id) is { } resolved)
         {
             components.Add(resolved);
+        }
+
+        return components;
+    }
+
+    /// <summary>The components an ATLauncher pack version asks for.</summary>
+    /// <returns>
+    /// Minecraft, plus the loader the version's <c>loader</c> block names. The loader version is passed
+    /// through as the pack states it, for the caller to resolve against the metadata index — the same
+    /// approach as <see cref="FromFlame"/>.
+    /// </returns>
+    /// <exception cref="LauncherException">
+    /// The loader type is set but not one this launcher knows, which upstream treats as a fatal install
+    /// error ("Unknown loader type"). An empty loader type is fine — a vanilla pack has no loader.
+    /// </exception>
+    public static List<PackComponent> FromAtl(AtlPackVersion version)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+
+        var components = new List<PackComponent>
+        {
+            new(MinecraftUid, NormaliseMinecraftVersion(version.Minecraft), Important: true),
+        };
+
+        var type = version.Loader.Type;
+
+        var uid = type switch
+        {
+            "" => null,
+            "forge" => ForgeUid,
+            "neoforge" => NeoForgeUid,
+            "fabric" => FabricUid,
+            _ => throw new LauncherException($"Unknown loader type: {type}"),
+        };
+
+        if (uid is not null)
+        {
+            components.Add(new PackComponent(uid, version.Loader.Version));
         }
 
         return components;

@@ -74,7 +74,19 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**383 of 758 files. 3,455 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**383 of 758 files. 3,461 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **ATLauncher pack components (wave 98).** `PackComponents.FromAtl`, the component builder for an
+> ATLauncher pack version, ported from the loader block of ATLPackInstallTask's createInstance (the
+> `net.minecraft` + loader-type-to-uid mapping, lines 1019–1041). Minecraft (normalised, important) plus
+> the loader the version's `loader` block names — forge → net.minecraftforge, neoforge → net.neoforged,
+> fabric → net.fabricmc.fabric-loader — with an empty loader type meaning a vanilla pack and any other
+> non-empty type a fatal "Unknown loader type", as upstream. The loader version is passed through as the
+> pack states it for the metadata index to resolve, the same approach as `FromFlame`; upstream's
+> `getVersionForLoader` meta lookup and the LiteLoader jar-mod md5 table are install-orchestration
+> concerns for a later wave. This completes ATLauncher's pure building blocks: parsing (waves 83), the
+> install decisions (85), and now the components. 6 tests over each loader, the vanilla case, version
+> normalisation, and the unknown-loader failure.
 
 > **Folder resource import (wave 97).** Closes the last Qt test without a dotnet equivalent —
 > ResourceFolderModel_test, whose test_1178 pins a real bug. Two fixes: `LocalResourceParse.Identify`
