@@ -74,7 +74,18 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**388 of 758 files. 3,528 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**390 of 758 files. 3,528 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Technic browser wired in (wave 111).** The UI layer that makes Technic user-facing — the fourth
+> in-GUI modpack platform. `TechnicBrowserWindow` (`.axaml` + code-behind) is search-driven (a Search
+> button; an empty box loads trending), with results on the left and pack details on the right.
+> `AppTechnicBrowser` shows the window, then on Accept fetches the pack detail (`TechnicDetail.Parse` over
+> the `#slug` endpoint) and stages the right install task — `TechnicSolderInstallTask` for a Solder pack,
+> `TechnicSingleZipInstallTask` for a single-zip one (both waves 81–82) — behind the progress window. An
+> `ITechnicBrowser` interface with a `BrowseTechnic` command and `CanBrowseTechnic` on
+> `MainWindowViewModel`, construction in `App.axaml.cs`, and a "Technic" toolbar button complete it.
+> Build-verified through the Avalonia compiler. **The launcher now browses and installs from four modpack
+> platforms — Modrinth, CurseForge, ATLauncher and Technic.**
 
 > **Technic pack detail (wave 110).** `TechnicDetail.Parse` (in ModPlatform), the piece that lets a
 > browsed Technic pack be installed — ported from TechnicPage's version-load handler. A pack's modpack

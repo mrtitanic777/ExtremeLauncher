@@ -1,0 +1,88 @@
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+
+  The Technic pack browser: results on the left, the highlighted pack's details on the right. Unlike the
+  FTB and ATLauncher browsers, Technic has a search endpoint, so there is a Search button (an empty box
+  searches the trending list).
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ExtremeLauncher.ViewModels"
+        xmlns:mp="using:ExtremeLauncher.ModPlatform"
+        xmlns:app="using:ExtremeLauncher.App"
+        x:Class="ExtremeLauncher.App.TechnicBrowserWindow"
+        x:DataType="vm:TechnicBrowserViewModel"
+        Title="Install a Technic pack"
+        Width="900" Height="620"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppCanvasBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaTitleBarHeightHint="40">
+
+  <DockPanel>
+    <app:TitleBar DockPanel.Dock="Top" />
+    <DockPanel Margin="12">
+
+      <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap"
+                     Text="{Binding Status}" />
+
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+            <Button Name="CancelButton" Content="Cancel" IsCancel="True" IsDefault="True" />
+            <Button Name="InstallButton" Content="Install" Classes="hero"
+                    IsEnabled="{Binding CanInstall}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,10">
+        <TextBox Width="320"
+                 Watermark="Search Technic (or leave blank for trending)"
+                 Text="{Binding SearchText, Mode=TwoWay}" />
+
+        <Button Content="Search" Command="{Binding SearchCommand}" />
+
+        <ProgressBar IsIndeterminate="True" Width="90" VerticalAlignment="Center"
+                     IsVisible="{Binding IsLoading}" />
+      </StackPanel>
+
+      <Grid ColumnDefinitions="2*,8,3*">
+
+        <ListBox Grid.Column="0"
+                 ItemsSource="{Binding Packs}"
+                 SelectedItem="{Binding SelectedPack, Mode=TwoWay}" Classes="compact">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="mp:TechnicModpack">
+              <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="0,2" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <GridSplitter Grid.Column="1" ResizeDirection="Columns" Background="Transparent" />
+
+        <DockPanel Grid.Column="2" IsVisible="{Binding SelectedPack, Converter={x:Static ObjectConverters.IsNotNull}}">
+
+          <TextBlock DockPanel.Dock="Top" FontWeight="SemiBold" FontSize="15"
+                     Text="{Binding SelectedPack.Name}" />
+
+          <TextBlock DockPanel.Dock="Top" Margin="0,4,0,10" TextWrapping="Wrap"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                     Text="{Binding SelectedPack.Slug}" />
+
+          <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Spacing="4">
+            <TextBlock Classes="field-label" Text="Instance name" />
+            <TextBox Text="{Binding InstanceName, Mode=TwoWay}"
+                     Watermark="{Binding SelectedPack.Name}" />
+          </StackPanel>
+
+          <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap"
+                     Text="The pack's version and files are fetched when you install." />
+
+          <TextBlock />
+        </DockPanel>
+      </Grid>
+    </DockPanel>
+  </DockPanel>
+</Window>
