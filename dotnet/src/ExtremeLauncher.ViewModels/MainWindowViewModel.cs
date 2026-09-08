@@ -56,6 +56,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IPackBrowser? browser = null,
         ILegacyFtbBrowser? legacyFtbBrowser = null,
         IAtlBrowser? atlBrowser = null,
+        ITechnicBrowser? technicBrowser = null,
         ILauncherLogViewer? launcherLog = null,
         IAccountsUi? accounts = null,
         IGlobalSettingsUi? settings = null,
@@ -76,6 +77,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _browser = browser;
         _legacyFtbBrowser = legacyFtbBrowser;
         _atlBrowser = atlBrowser;
+        _technicBrowser = technicBrowser;
         _launcherLog = launcherLog;
         _accounts = accounts;
         _settings = settings;
@@ -147,6 +149,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly ILegacyFtbBrowser? _legacyFtbBrowser;
 
     private readonly IAtlBrowser? _atlBrowser;
+
+    private readonly ITechnicBrowser? _technicBrowser;
 
     private readonly ILauncherLogViewer? _launcherLog;
 
@@ -401,6 +405,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         var installed = await _atlBrowser!.BrowseAndInstallAsync(list).ConfigureAwait(true);
+
+        Instances.Reload();
+
+        if (installed.Length != 0)
+        {
+            Instances.Select(installed);
+        }
+
+        RaiseSelectionDependent();
+    }
+
+    /// <summary>Whether the Technic browser can be opened.</summary>
+    public bool CanBrowseTechnic => _technicBrowser is not null && !Launch.IsBusy;
+
+    /// <summary>Browses the Technic catalogue and installs the chosen pack.</summary>
+    [RelayCommand]
+    public async Task BrowseTechnicAsync()
+    {
+        if (!CanBrowseTechnic || Instances.Source is not { } list)
+        {
+            return;
+        }
+
+        var installed = await _technicBrowser!.BrowseAndInstallAsync(list).ConfigureAwait(true);
 
         Instances.Reload();
 
@@ -1002,6 +1030,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(CanBrowsePacks));
         OnPropertyChanged(nameof(CanBrowseLegacyFtb));
         OnPropertyChanged(nameof(CanBrowseAtl));
+        OnPropertyChanged(nameof(CanBrowseTechnic));
         OnPropertyChanged(nameof(HasDuplicationStatus));
         OnPropertyChanged(nameof(HasIndeterminateCopyProgress));
         OnPropertyChanged(nameof(CanUndoDelete));
@@ -1056,6 +1085,13 @@ public interface ILegacyFtbBrowser
 
 /// <summary>Opens the ATLauncher browser and installs the chosen pack. Implemented by the app.</summary>
 public interface IAtlBrowser
+{
+    /// <summary>Returns the new instance's id, or empty when the user cancelled or it failed.</summary>
+    Task<string> BrowseAndInstallAsync(InstanceList list);
+}
+
+/// <summary>Opens the Technic browser and installs the chosen pack. Implemented by the app.</summary>
+public interface ITechnicBrowser
 {
     /// <summary>Returns the new instance's id, or empty when the user cancelled or it failed.</summary>
     Task<string> BrowseAndInstallAsync(InstanceList list);
