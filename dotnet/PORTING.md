@@ -74,7 +74,19 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**383 of 758 files. 3,478 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**383 of 758 files. 3,484 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **ATLauncher update cleaner (wave 101).** `AtlUpdateCleaner.PlanDeletions` (in `Launch/AtlInstall.cs`),
+> ported from ATLPackInstallTask's deleteExistingFiles — the on-update cleanup that clears a pack's old
+> files before the new ones go in. It applies ATLauncher's built-in rules (clear `mods`/`configs`/`bin`;
+> keep a fixed handful — PortalGunSounds.pak, rei_minimap, VoxelMods, NEI.cfg, options.txt, servers.dat)
+> plus the version's own keeps/deletes, resolving the `%s%` separator and the `root`/`config` bases, and
+> returns the files to remove (a keep, file or folder, overrides a delete). **Deliberate divergence:** it
+> plans at file granularity and never returns a directory — upstream lists directories too, and because a
+> keep-folder is matched with a bare "starts with", a kept file inside a to-be-deleted directory is
+> removed as collateral; planning files only closes that data-loss hole (nothing tested the old
+> behaviour). 6 tests: the built-in clear-and-keep, a kept file surviving a folder clear above it, a pack
+> delete with `%s%`, a pack keep overriding a pack delete, a config-base delete, and the empty case.
 
 > **ATLauncher mod download plan (wave 100).** `AtlModPlanner` (in `Launch/AtlInstall.cs`), the pure
 > core of ATLPackInstallTask's downloadMods: given a version's mods and the optional ones the user

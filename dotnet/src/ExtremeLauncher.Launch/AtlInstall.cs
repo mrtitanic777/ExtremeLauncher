@@ -205,6 +205,108 @@ public static class AtlPackBuilder
     }
 }
 
+/// <summary>
+/// Works out which files an ATLauncher update removes, ported from ATLPackInstallTask's
+/// deleteExistingFiles. On update the pack's old mods/config/bin are cleared out — a fixed set of
+/// built-in delete and keep rules, plus the version's own — before the new files go in. Given the game
+/// folder and the version's keeps/deletes, this returns the files to remove; the caller deletes them.
+/// </summary>
+/// <remarks>
+/// FILE GRANULARITY, a deliberate divergence. Upstream lists directories as well as files, and because
+/// a keep-folder rule is matched with a bare "starts with", a kept file inside a directory that is
+/// itself scheduled for deletion is removed anyway when the directory goes. Planning at file
+/// granularity — never returning a directory, so a kept file is never collateral — closes that
+/// data-loss hole. Nothing tested it, so nothing depends on the old behaviour.
+/// </remarks>
+public static class AtlUpdateCleaner
+{
+    // ATLauncher's built-in rules, applied to every update on top of the pack's own.
+    private static readonly (string Base, string Target)[] BuiltinDeleteFolders =
+        [("root", "mods/"), ("root", "configs/"), ("root", "bin/")];
+
+    private static readonly (string Base, string Target)[] BuiltinKeepFiles =
+    [
+        ("root", "mods/PortalGunSounds.pak"),
+        ("root", "config/NEI.cfg"),
+        ("root", "options.txt"),
+        ("root", "servers.dat"),
+    ];
+
+    private static readonly (string Base, string Target)[] BuiltinKeepFolders =
+        [("root", "mods/rei_minimap/"), ("root", "mods/VoxelMods/")];
+
+    public static List<string> PlanDeletions(string gameRoot, AtlVersionKeeps packKeeps, AtlVersionDeletes packDeletes)
+    {
+        ArgumentNullException.ThrowIfNull(gameRoot);
+        ArgumentNullException.ThrowIfNull(packKeeps);
+        ArgumentNullException.ThrowIfNull(packDeletes);
+
+        var root = Normalize(gameRoot);
+
+        var keepFiles = new HashSet<string>(StringComparer.Ordinal);
+        keepFiles.UnionWith(BuiltinKeepFiles.Select(k => FullPath(root, k.Base, k.Target)));
+        keepFiles.UnionWith(packKeeps.Files.Select(k => FullPath(root, k.Base, k.Target)));
+
+        // Keep-folder prefixes, each ending in "/" so a name is matched as a whole segment.
+        var keepFolders = BuiltinKeepFolders.Concat(packKeeps.Folders.Select(k => (k.Base, k.Target)))
+            .Select(k => EnsureTrailingSlash(FullPath(root, k.Base, k.Target)))
+            .ToList();
+
+        bool ShouldKeep(string path)
+            => keepFiles.Contains(path) || keepFolders.Any(f => path.StartsWith(f, StringComparison.Ordinal));
+
+        var toDelete = new List<string>();
+
+        // Individual file deletes: built-ins have none, the pack may.
+        foreach (var item in packDeletes.Files)
+        {
+            var path = FullPath(root, item.Base, item.Target);
+
+            if (File.Exists(path) && !ShouldKeep(path))
+            {
+                toDelete.Add(path);
+            }
+        }
+
+        // Folder deletes: every unkept file under the folder, never the folder itself.
+        foreach (var (baseName, target) in BuiltinDeleteFolders.Concat(packDeletes.Folders.Select(f => (f.Base, f.Target))))
+        {
+            var folder = FullPath(root, baseName, target).TrimEnd('/');
+
+            if (!Directory.Exists(folder))
+            {
+                continue;
+            }
+
+            foreach (var file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
+            {
+                var path = Normalize(file);
+
+                if (!ShouldKeep(path))
+                {
+                    toDelete.Add(path);
+                }
+            }
+        }
+
+        return [.. toDelete.Distinct(StringComparer.Ordinal)];
+    }
+
+    private static string FullPath(string root, string baseName, string target)
+    {
+        var basePath = baseName == "config" ? root + "/config" : root;
+
+        return Normalize($"{basePath}/{ConvertTarget(target)}");
+    }
+
+    /// <summary>ATLauncher's path separator placeholder is "%s%".</summary>
+    private static string ConvertTarget(string target) => target.Replace("%s%", "/", StringComparison.Ordinal);
+
+    private static string Normalize(string path) => path.Replace('\\', '/').TrimEnd('/');
+
+    private static string EnsureTrailingSlash(string path) => path.EndsWith('/') ? path : path + "/";
+}
+
 /// <summary>What the installer does with a downloaded ATLauncher mod file.</summary>
 public enum AtlModAction
 {
