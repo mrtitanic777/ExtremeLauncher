@@ -117,6 +117,13 @@ public sealed record BuildConfig
     /// <c>static/thirdparty.xml</c> under this base.</summary>
     public string LegacyFtbCdnBaseUrl { get; init; } = "https://dist.creeper.host/FTB2/";
 
+    /// <summary>ATLauncher's download CDN — pack lists, images, pack configs and server-hosted mods live
+    /// under this base. From BuildConfig's ATL_DOWNLOAD_SERVER_URL.</summary>
+    public string AtlDownloadServerUrl { get; init; } = "https://download.nodecdn.net/containers/atl/";
+
+    /// <summary>ATLauncher's API base, used for share codes. From BuildConfig's ATL_API_BASE_URL.</summary>
+    public string AtlApiBaseUrl { get; init; } = "https://api.atlauncher.com/v1/";
+
     /// <summary>Where the news toolbar fetches from.</summary>
     /// <remarks>
     /// The fork's own CMake default (Launcher_NEWS_RSS_URL). Called RSS everywhere upstream -- the

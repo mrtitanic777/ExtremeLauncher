@@ -74,7 +74,20 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**383 of 758 files. 3,465 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**383 of 758 files. 3,478 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **ATLauncher mod download plan (wave 100).** `AtlModPlanner` (in `Launch/AtlInstall.cs`), the pure
+> core of ATLPackInstallTask's downloadMods: given a version's mods and the optional ones the user
+> chose, it decides which are installed, where each is fetched from, and what becomes of it. Download
+> type routes the URL — "server" hangs off ATLauncher's CDN (`BuildConfig.AtlDownloadServerUrl`, added
+> this wave with `AtlApiBaseUrl`), "direct" names its own, "browser" is blocked (a manual download),
+> "unknown" fails. Only client-side mods count, and an unchosen optional mod is left out entirely (unlike
+> CurseForge, which installs it disabled). Each installed mod is classified: extract, decompile, or
+> placed into the folder its type maps to (wave 85's `GetDirForModType`), with Forge/Jar mods flagged as
+> jar mods. `OptionalMods` lists the optional names for the chooser. 13 tests over the URL routing, the
+> client/optional filtering, every placement, and the extract/decompile/blocked/unknown cases. With this
+> ATLauncher's offline logic is complete through the download plan; what remains is the network
+> orchestration (resolve, download, extract configs, keeps/deletes) and the browser UI.
 
 > **ATLauncher instance staging (wave 99).** `AtlPackBuilder.BuildInstance` (in `Launch/AtlInstall.cs`),
 > the staging tail of ATLPackInstallTask's install(): a resolved pack version becomes a pack profile and
