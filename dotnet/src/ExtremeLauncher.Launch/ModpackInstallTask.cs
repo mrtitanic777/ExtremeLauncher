@@ -49,6 +49,8 @@ public sealed class ModpackInstallTask : LauncherTask, IInstanceTask
 
     private ModrinthImportTask? _import;
 
+    private FlameImportTask? _flameImport;
+
     /// <param name="name">What to call the instance, or empty to use the pack's own name.</param>
     public ModpackInstallTask(
         HttpClient client,
@@ -92,24 +94,21 @@ public sealed class ModpackInstallTask : LauncherTask, IInstanceTask
     public string OriginalInstanceId => string.Empty;
 
     /// <summary>How many of the pack's files were fetched, once the install has run.</summary>
-    public int DownloadedCount => _import?.DownloadedCount ?? 0;
+    public int DownloadedCount => _import?.DownloadedCount ?? _flameImport?.DownloadedCount ?? 0;
 
     public string PackName => _import?.PackName ?? _pack.Name;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         /*
-         * MODRINTH ONLY, ON PURPOSE. The download below is handed to ModrinthImportTask, which reads a
-         * .mrpack. A CurseForge pack's file is a zip of manifest.json + overrides in a different format
-         * that importer cannot read, so a pack from any other provider is refused here with a clear
-         * message rather than downloaded and mis-parsed. The browser lists CurseForge packs so they can
-         * be found; installing one waits on a Flame import path (its manifest and file resolver are
-         * ported, the orchestration is not).
+         * TWO PROVIDERS, TWO PACK FORMATS. A Modrinth file is a .mrpack; a CurseForge file is a zip of
+         * manifest.json + overrides. Each has its own importer, so the download below is routed by the
+         * pack's provider. Any other provider is refused rather than fed to the wrong reader.
          */
-        if (_pack.Provider != ResourceProvider.Modrinth)
+        if (_pack.Provider is not (ResourceProvider.Modrinth or ResourceProvider.Flame))
         {
             throw new TaskFailedException(
-                $"Installing a {_pack.Provider} modpack from the browser is not supported yet — only Modrinth.");
+                $"Installing a {_pack.Provider} modpack from the browser is not supported yet.");
         }
 
         if (_version.DownloadUrl.Length == 0)
@@ -134,32 +133,13 @@ public sealed class ModpackInstallTask : LauncherTask, IInstanceTask
 
             SetStatus($"Installing {_pack.Name}");
 
-            /*
-             * THE IDS GO IN HERE. This is the entire reason the browser exists as a separate path
-             * from importing a file: the instance ends up knowing which project and which version it
-             * came from, so something can later ask whether there is a newer one.
-             */
-            _import = new ModrinthImportTask(
-                temp,
-                _client,
-                _requestedName,
-                Group,
-                _paths,
-                _metaUrl,
-                managedId: _pack.AddonId,
-                managedVersionId: _version.FileId)
+            if (_pack.Provider == ResourceProvider.Flame)
             {
-                StagingPath = StagingPath,
-            };
-
-            // Progress passes straight through, so the window shows the pack's own mods downloading
-            // rather than sitting at "installing" for two minutes.
-            _import.ProgressChanged += (_, e) => SetProgress(e.Current, e.Total);
-            _import.StatusChanged += (_, status) => SetStatus(status);
-
-            if (!await _import.RunAsync(cancellationToken).ConfigureAwait(false))
+                await InstallFlameAsync(temp, cancellationToken).ConfigureAwait(false);
+            }
+            else
             {
-                throw new TaskFailedException(_import.FailReason);
+                await InstallModrinthAsync(temp, cancellationToken).ConfigureAwait(false);
             }
         }
         finally
@@ -180,6 +160,61 @@ public sealed class ModpackInstallTask : LauncherTask, IInstanceTask
             {
                 // A temp file that will not delete is not worth failing an otherwise good install.
             }
+        }
+    }
+
+    /// <summary>
+    /// Imports the downloaded .mrpack. The project and version ids go in so the instance remembers where
+    /// it came from and can later be offered an update — the whole reason the browser is a path of its
+    /// own rather than a plain file import.
+    /// </summary>
+    private async Task InstallModrinthAsync(string archive, CancellationToken cancellationToken)
+    {
+        _import = new ModrinthImportTask(
+            archive,
+            _client,
+            _requestedName,
+            Group,
+            _paths,
+            _metaUrl,
+            managedId: _pack.AddonId,
+            managedVersionId: _version.FileId)
+        {
+            StagingPath = StagingPath,
+        };
+
+        // Progress passes straight through, so the window shows the pack's own mods downloading
+        // rather than sitting at "installing" for two minutes.
+        _import.ProgressChanged += (_, e) => SetProgress(e.Current, e.Total);
+        _import.StatusChanged += (_, status) => SetStatus(status);
+
+        if (!await _import.RunAsync(cancellationToken).ConfigureAwait(false))
+        {
+            throw new TaskFailedException(_import.FailReason);
+        }
+    }
+
+    /// <summary>
+    /// Imports the downloaded CurseForge zip through <see cref="FlameImportTask"/>, building the file
+    /// resolver from the CurseForge and Modrinth APIs the same way the browser's search does.
+    /// </summary>
+    private async Task InstallFlameAsync(string archive, CancellationToken cancellationToken)
+    {
+        var resolver = new FlameResolverApi(
+            new FlameApi(_client, BuildConfig.Instance.FlameApiKey), new ModrinthApi(_client));
+
+        _flameImport = new FlameImportTask(
+            archive, resolver, _client, LauncherService.CurrentRuntimeContext(), _requestedName, group: Group)
+        {
+            StagingPath = StagingPath,
+        };
+
+        _flameImport.ProgressChanged += (_, e) => SetProgress(e.Current, e.Total);
+        _flameImport.StatusChanged += (_, status) => SetStatus(status);
+
+        if (!await _flameImport.RunAsync(cancellationToken).ConfigureAwait(false))
+        {
+            throw new TaskFailedException(_flameImport.FailReason);
         }
     }
 
