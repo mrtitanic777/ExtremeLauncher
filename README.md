@@ -5,7 +5,7 @@
 
 > [!NOTE]
 > **A C#/.NET 9 + Avalonia port lives in [`dotnet/`](dotnet/).** It re-implements the launcher for
-> Windows, Linux and macOS on .NET, with ~3,200 passing tests across the ported subsystems. A vanilla
+> Windows, Linux and macOS on .NET, with over 3,400 passing tests across the ported subsystems. A vanilla
 > instance created in the GUI has been **launched end-to-end to the Minecraft main menu on both Windows
 > and Linux** (resolve → download → Java auto-download → real GPU-rendered game). It is still **not a
 > finished release**: Microsoft sign-in needs a runtime credential (offline accounts work), no
@@ -22,16 +22,16 @@ The rest of this document describes the original Qt/C++ launcher.
 
 ### .NET port — prebuilt downloads
 
-The C#/.NET 9 + Avalonia port now has a **prebuilt release**: **[Extreme Launcher .NET port — 5.1.3](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest)** — the classic FTB browser, jar-mod install and cat-pack backgrounds, on top of 5.1.2's full dark UI and launch verified on Windows and Linux.
+The C#/.NET 9 + Avalonia port now has a **prebuilt release**: **[Extreme Launcher .NET port — 5.1.4](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest)** — a **CurseForge modpack browser** you can search and install from (alongside Modrinth), plus folder resource-pack import and a large batch of newly ported subsystems, on top of 5.1.3's classic FTB browser and jar-mod install.
 
 Self-contained builds — no .NET runtime to install, just download, unzip and run:
 
 | Platform | Download |
 |----------|----------|
-| Windows (x64) | [`…-win-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.3-win-x64.zip) |
-| Linux (x64) | [`…-linux-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.3-linux-x64.zip) |
-| macOS (Apple Silicon) | [`…-osx-arm64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.3-osx-arm64.zip) |
-| macOS (Intel) | [`…-osx-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.3-osx-x64.zip) |
+| Windows (x64) | [`…-win-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.4-win-x64.zip) |
+| Linux (x64) | [`…-linux-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.4-linux-x64.zip) |
+| macOS (Apple Silicon) | [`…-osx-arm64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.4-osx-arm64.zip) |
+| macOS (Intel) | [`…-osx-x64.zip`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/ExtremeLauncher-dotnet-5.1.4-osx-x64.zip) |
 
 The [`checksums.txt`](https://github.com/mrtitanic777/ExtremeLauncher/releases/latest/download/checksums.txt) on the release page holds the SHA-256 of each archive.
 
