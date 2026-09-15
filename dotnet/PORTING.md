@@ -74,7 +74,17 @@ currently requires `cmake --install` plus bundling `platforms/`, `tls/`, `iconen
 
 ## Status
 
-**390 of 758 files. 3,528 passing, 15 skipped.** (12 source projects, 12 test projects.)
+**391 of 758 files. 3,539 passing, 15 skipped.** (12 source projects, 12 test projects.)
+
+> **Separator prefix tree (wave 112).** Ported `SeparatorPrefixTree.h` to `Core/SeparatorPrefixTree.cs` —
+> the excluded-path tree behind the instance-export dialog's tri-state folder checkboxes. `Cover` finds a
+> covering excluded node (the path itself or an ancestor → unchecked), `Exists` finds a node with an
+> excluded descendant (→ partially checked), neither → checked; plus `Insert`/`Remove` (removing a
+> structural prefix takes everything under it), `Contains`/`Find` (distinguishing inserted leaves from
+> structural nodes), and `ToList` round-tripping. The C++ template separator becomes a constructor char
+> (default '/'). 11 tests over cover/exists/contains, insert, both remove kinds, an absent remove, the
+> round-trip, and a non-slash separator. The FileIgnoreProxy model that sits on top of this is Qt-bound
+> UI; this is its reusable, testable core.
 
 > **Technic browser wired in (wave 111).** The UI layer that makes Technic user-facing — the fourth
 > in-GUI modpack platform. `TechnicBrowserWindow` (`.axaml` + code-behind) is search-driven (a Search
